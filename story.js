@@ -90,17 +90,24 @@ function createStoryPopup() {
 
 function renderStories() {
   const storiesList = document.getElementById("storiesList");
+  if (!storiesList) {
+    console.error("storiesList element not found!");
+    return;
+  }
+  
   storiesList.innerHTML = "";
   stories.forEach((story) => {
     const storyElement = document.createElement("div");
     storyElement.className = "story-item";
+    
     const avatarRingClass = story.isYourStory
       ? "your-story"
       : story.hasNewStory
       ? "has-story"
       : "your-story";
+    
     storyElement.innerHTML = `
-      <div class="story-avatar-container">
+      <div class="story-avatar-container" style="cursor: pointer;">
         <div class="story-avatar-ring ${avatarRingClass}">
           <div class="story-avatar-bg">
             <img src="${story.avatar}" alt="${story.username}" class="story-avatar">
@@ -110,16 +117,36 @@ function renderStories() {
       </div>
       <span class="story-username">${story.username}</span>
     `;
-    storyElement.addEventListener("click", () => showStoryPopup());
+    
+    // Add click event specifically to the avatar container for instant response
+    const avatarContainer = storyElement.querySelector(".story-avatar-container");
+    avatarContainer.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showStoryPopup();
+    });
+    
     storiesList.appendChild(storyElement);
   });
 }
 
 function showStoryPopup() {
   const popup = document.getElementById("storyPopup");
+  if (!popup) {
+    console.error("Popup not found!");
+    return;
+  }
   popup.style.display = "block";
 }
 
-// Initialize
-createStoryPopup();
-renderStories();
+// Initialize - wait for DOM to be ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    createStoryPopup();
+    renderStories();
+  });
+} else {
+  createStoryPopup();
+  renderStories();
+}
+
