@@ -6,8 +6,7 @@ const stories = [
 
 // --- Create Popup Once ---
 function createStoryPopup() {
-  // Prevent duplicate creation
-  if (document.getElementById("storyPopup")) return;
+  if (document.getElementById("storyPopup")) return; // Prevent duplicates
 
   const popup = document.createElement("div");
   popup.className = "story-popup";
@@ -24,9 +23,19 @@ function createStoryPopup() {
   let currentY = 0;
   let translateY = 0;
 
-  // Helper to hide popup
+  // --- Hide Popup Smoothly ---
   function hideStoryPopup() {
     popup.classList.remove("active");
+    popupContent.style.transition = "transform 0.3s ease-out";
+
+    // Wait for opacity transition to finish before enabling clicks again
+    popup.addEventListener(
+      "transitionend",
+      () => {
+        popup.style.pointerEvents = "auto";
+      },
+      { once: true }
+    );
   }
 
   // --- Mouse Events ---
@@ -50,12 +59,12 @@ function createStoryPopup() {
     isDragging = false;
     popupContent.style.transition = "transform 0.3s ease-out";
     const threshold = window.innerHeight * 0.15;
+
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`;
       setTimeout(() => {
         hideStoryPopup();
         popupContent.style.transform = "";
-        popupContent.style.transition = "";
       }, 300);
     } else {
       popupContent.style.transform = "translateY(0)";
@@ -84,12 +93,12 @@ function createStoryPopup() {
     isDragging = false;
     popupContent.style.transition = "transform 0.3s ease-out";
     const threshold = window.innerHeight * 0.15;
+
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`;
       setTimeout(() => {
         hideStoryPopup();
         popupContent.style.transform = "";
-        popupContent.style.transition = "";
       }, 300);
     } else {
       popupContent.style.transform = "translateY(0)";
@@ -99,18 +108,10 @@ function createStoryPopup() {
 }
 
 // --- Show Popup Instantly ---
-let popupCooldown = false;
 function showStoryPopup() {
-  if (popupCooldown) return;
-  popupCooldown = true;
-
   const popup = document.getElementById("storyPopup");
   if (!popup) return;
-
   popup.classList.add("active");
-
-  // Prevent double-trigger
-  setTimeout(() => (popupCooldown = false), 400);
 }
 
 // --- Render Stories ---
@@ -145,7 +146,6 @@ function renderStories() {
       <span class="story-username">${story.username}</span>
     `;
 
-    // Click triggers story popup instantly
     const avatarContainer = storyElement.querySelector(".story-avatar-container");
     avatarContainer.addEventListener("click", (e) => {
       e.preventDefault();
