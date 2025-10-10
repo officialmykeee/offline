@@ -44,12 +44,14 @@ function createStoryPopup() {
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`; // Slide off screen
       setTimeout(() => {
+        popup.classList.remove("active"); // Remove active class
         popup.style.display = "none";
-        popupContent.style.transform = "translateY(0)"; // Reset position
+        popupContent.style.transform = ""; // Reset to CSS default
       }, 300); // Match transition duration
     } else {
       popupContent.style.transform = "translateY(0)"; // Snap back
     }
+    translateY = 0; // Reset translateY
   });
 
   // Touch events for mobile
@@ -76,12 +78,14 @@ function createStoryPopup() {
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`;
       setTimeout(() => {
+        popup.classList.remove("active"); // Remove active class
         popup.style.display = "none";
-        popupContent.style.transform = "translateY(0)";
+        popupContent.style.transform = ""; // Reset to CSS default
       }, 300);
     } else {
       popupContent.style.transform = "translateY(0)";
     }
+    translateY = 0; // Reset translateY
   });
 }
 
@@ -114,7 +118,15 @@ function renderStories() {
 
 function showStoryPopup() {
   const popup = document.getElementById("storyPopup");
-  popup.style.display = "flex";
+  const popupContent = popup.querySelector(".story-popup-content");
+  
+  popup.style.display = "block"; // Show the popup
+  popupContent.style.transform = ""; // Reset any inline transform styles
+  
+  // Trigger reflow to ensure transition works
+  popup.offsetHeight;
+  
+  popup.classList.add("active"); // Trigger slide-down animation
 }
 
 // Initialize the pop-up and render stories
