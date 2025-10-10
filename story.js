@@ -1,3 +1,4 @@
+
 const stories = [
   { id: "your-story", username: "Your story", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face", hasNewStory: false, isYourStory: true },
   { id: "1", username: "Emily", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face", hasNewStory: true },
@@ -44,16 +45,16 @@ function createStoryPopup() {
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`; // Slide off screen
       setTimeout(() => {
-        popup.classList.remove("active"); // Remove active class
         popup.style.display = "none";
-        // Complete reset of all inline styles
-        popupContent.style.transition = "";
-        popupContent.style.transform = "";
-        translateY = 0; // Reset translateY
-      }, 300); // Match transition duration
+        popup.classList.remove("active");
+        // Complete reset
+        popupContent.style.transition = "none";
+        popupContent.style.transform = "translateY(0)";
+        translateY = 0;
+      }, 300);
     } else {
       popupContent.style.transform = "translateY(0)"; // Snap back
-      translateY = 0; // Reset translateY
+      translateY = 0;
     }
   });
 
@@ -77,20 +78,20 @@ function createStoryPopup() {
     if (!isDragging) return;
     isDragging = false;
     popupContent.style.transition = "transform 0.3s ease-out";
-    const threshold = window.innerHeight * 0.15; // Dismiss if dragged 15% of screen height
+    const threshold = window.innerHeight * 0.15;
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`;
       setTimeout(() => {
-        popup.classList.remove("active"); // Remove active class
         popup.style.display = "none";
-        // Complete reset of all inline styles
-        popupContent.style.transition = "";
-        popupContent.style.transform = "";
-        translateY = 0; // Reset translateY
+        popup.classList.remove("active");
+        // Complete reset
+        popupContent.style.transition = "none";
+        popupContent.style.transform = "translateY(0)";
+        translateY = 0;
       }, 300);
     } else {
       popupContent.style.transform = "translateY(0)";
-      translateY = 0; // Reset translateY
+      translateY = 0;
     }
   });
 }
@@ -126,24 +127,18 @@ function showStoryPopup() {
   const popup = document.getElementById("storyPopup");
   const popupContent = popup.querySelector(".story-popup-content");
   
-  // Complete reset before opening
-  popup.classList.remove("active");
+  // Ensure clean state
   popupContent.style.transition = "none";
-  popupContent.style.transform = "";
-  
-  popup.style.display = "block"; // Show the popup
-  
-  // Force reflow to ensure styles are applied
-  popup.offsetHeight;
-  
-  // Set to final position immediately for instant opening
   popupContent.style.transform = "translateY(0)";
+  
+  // Show immediately
+  popup.style.display = "block";
   popup.classList.add("active");
   
-  // Re-enable transition after opening for smooth dismissal
-  requestAnimationFrame(() => {
+  // Re-enable transition for drag functionality
+  setTimeout(() => {
     popupContent.style.transition = "transform 0.3s ease-out";
-  });
+  }, 10);
 }
 
 // Initialize the pop-up and render stories
