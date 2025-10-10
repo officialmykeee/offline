@@ -4,12 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Messages App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="story.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app-container">
-    <!-- Header -->
     <div class="header">
       <div class="header-content">
         <svg
@@ -41,18 +39,17 @@
       </div>
     </div>
 
-    <!-- Stories -->
     <div class="stories-container" id="storiesContainer">
       <div class="stories-scroll">
         <div class="stories-list" id="storiesList"></div>
       </div>
     </div>
 
-    <!-- Chat List -->
     <div class="chat-list" id="chatList"></div>
   </div>
 
-  <script src="story.js"></script>
+  <script type="module" src="story.js"></script>
+
   <script>
     const chats = [
       { id: "1", name: "Emma Wilson", lastMessage: "Hey! Are we still on for dinner tonight?", timestamp: "2:34 PM", avatar: "EW", unreadCount: 2, isOnline: true },
@@ -94,3 +91,4 @@
   </script>
 </body>
 </html>
+
