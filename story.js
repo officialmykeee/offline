@@ -46,12 +46,15 @@ function createStoryPopup() {
       setTimeout(() => {
         popup.classList.remove("active"); // Remove active class
         popup.style.display = "none";
-        popupContent.style.transform = ""; // Reset to CSS default
+        // Complete reset of all inline styles
+        popupContent.style.transition = "";
+        popupContent.style.transform = "";
+        translateY = 0; // Reset translateY
       }, 300); // Match transition duration
     } else {
       popupContent.style.transform = "translateY(0)"; // Snap back
+      translateY = 0; // Reset translateY
     }
-    translateY = 0; // Reset translateY
   });
 
   // Touch events for mobile
@@ -80,12 +83,15 @@ function createStoryPopup() {
       setTimeout(() => {
         popup.classList.remove("active"); // Remove active class
         popup.style.display = "none";
-        popupContent.style.transform = ""; // Reset to CSS default
+        // Complete reset of all inline styles
+        popupContent.style.transition = "";
+        popupContent.style.transform = "";
+        translateY = 0; // Reset translateY
       }, 300);
     } else {
       popupContent.style.transform = "translateY(0)";
+      translateY = 0; // Reset translateY
     }
-    translateY = 0; // Reset translateY
   });
 }
 
@@ -120,21 +126,24 @@ function showStoryPopup() {
   const popup = document.getElementById("storyPopup");
   const popupContent = popup.querySelector(".story-popup-content");
   
-  // Disable transition temporarily for instant opening
+  // Complete reset before opening
+  popup.classList.remove("active");
   popupContent.style.transition = "none";
+  popupContent.style.transform = "";
   
   popup.style.display = "block"; // Show the popup
-  popupContent.style.transform = "translateY(0)"; // Set to final position immediately
   
-  // Trigger reflow
+  // Force reflow to ensure styles are applied
   popup.offsetHeight;
   
-  popup.classList.add("active"); // Add active class
+  // Set to final position immediately for instant opening
+  popupContent.style.transform = "translateY(0)";
+  popup.classList.add("active");
   
-  // Re-enable transition after a brief delay for smooth dismissal
-  setTimeout(() => {
+  // Re-enable transition after opening for smooth dismissal
+  requestAnimationFrame(() => {
     popupContent.style.transition = "transform 0.3s ease-out";
-  }, 50);
+  });
 }
 
 // Initialize the pop-up and render stories
