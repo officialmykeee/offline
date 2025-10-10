@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Messages App</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="story.css" />
 </head>
 <body>
   <div class="app-container">
+    <!-- Header -->
     <div class="header">
       <div class="header-content">
         <svg
@@ -39,22 +41,62 @@
       </div>
     </div>
 
+    <!-- Stories -->
     <div class="stories-container" id="storiesContainer">
       <div class="stories-scroll">
         <div class="stories-list" id="storiesList"></div>
       </div>
     </div>
 
+    <!-- Chat List -->
     <div class="chat-list" id="chatList"></div>
   </div>
 
-  <script type="module" src="story.js"></script>
+  <!-- Story Popup -->
+  <div class="story-popup" id="storyPopup">
+    <div class="story-popup-content"></div>
+  </div>
 
-  <script>
+  <script type="module">
+    import { stories } from './story.js';
+
     const chats = [
       { id: "1", name: "Emma Wilson", lastMessage: "Hey! Are we still on for dinner tonight?", timestamp: "2:34 PM", avatar: "EW", unreadCount: 2, isOnline: true },
       { id: "2", name: "Family", lastMessage: "Mom: Don't forget about Sunday brunch!", timestamp: "1:15 PM", avatar: "F", unreadCount: 5 },
     ];
+
+    function renderStories() {
+      const storiesList = document.getElementById("storiesList");
+      storiesList.innerHTML = "";
+      stories.forEach((story) => {
+        const storyElement = document.createElement("div");
+        storyElement.className = "story-item";
+        const avatarRingClass = story.isYourStory
+          ? "your-story"
+          : story.hasNewStory
+          ? "has-story"
+          : "your-story";
+        storyElement.innerHTML = `
+          <div class="story-avatar-container">
+            <div class="story-avatar-ring ${avatarRingClass}">
+              <div class="story-avatar-bg">
+                <img src="${story.avatar}" alt="${story.username}" class="story-avatar">
+              </div>
+            </div>
+            ${story.isYourStory ? '<div class="story-plus">+</div>' : ""}
+          </div>
+          <span class="story-username">${story.username}</span>
+        `;
+
+        // Story click = open popup
+        storyElement.addEventListener("click", () => {
+          const popup = document.getElementById("storyPopup");
+          popup.classList.add("active");
+        });
+
+        storiesList.appendChild(storyElement);
+      });
+    }
 
     function renderChats() {
       const chatList = document.getElementById("chatList");
@@ -87,8 +129,13 @@
       });
     }
 
+    renderStories();
     renderChats();
+
+    // Close popup on click
+    document.getElementById("storyPopup").addEventListener("click", () => {
+      document.getElementById("storyPopup").classList.remove("active");
+    });
   </script>
 </body>
 </html>
-
