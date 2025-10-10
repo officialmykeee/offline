@@ -1,4 +1,5 @@
 // story.js
+// export stories data + functions to create/open/close the popup
 export const stories = [
   {
     id: "your-story",
@@ -24,61 +25,145 @@ export const stories = [
   },
 ];
 
-// --- Create popup element ---
-const popup = document.createElement("div");
-popup.className = "story-popup";
-document.body.appendChild(popup);
-
+let popupEl = null;
+let popupContent = null;
+let activePointerId = null;
 let startY = 0;
-let currentY = 0;
+let lastY = 0;
 let isDragging = false;
+const THRESHOLD = 120; // px required to trigger close
 
-// Open popup instantly
-export function openStoryPopup() {
-  popup.classList.add("active");
-}
-
-// Close popup
-export function closeStoryPopup() {
-  popup.classList.remove("active");
-  popup.style.transform = "";
-}
-
-// --- Drag down to close (very sensitive) ---
-popup.addEventListener("touchstart", (e) => {
-  startY = e.touches[0].clientY;
-  currentY = startY;
-  isDragging = true;
-  popup.style.transition = ""; // disable during drag
-});
-
-popup.addEventListener("touchmove", (e) => {
-  if (!isDragging) return;
-  currentY = e.touches[0].clientY;
-  const delta = currentY - startY;
-
-  if (delta > 0) {
-    popup.style.transform = `translateY(${delta}px)`;
-    popup.style.opacity = `${1 - delta / 400}`; // slight fade as you pull
-  }
-});
-
-popup.addEventListener("touchend", () => {
-  isDragging = false;
-  const delta = currentY - startY;
-  popup.style.transition = "transform 0.25s ease, opacity 0.25s ease";
-
-  // More sensitive threshold (just 60px)
-  if (delta > 60) {
-    popup.style.transform = `translateY(100%)`;
-    popup.style.opacity = "0";
-    setTimeout(() => {
-      closeStoryPopup();
-      popup.style.transition = "";
-      popup.style.opacity = "";
-    }, 250);
+// Create (or attach to existing) popup element and wire handlers
+export function createStoryPopup(popupId = "storyPopup") {
+  // find existing element by id or create it
+  popupEl = document.getElementById(popupId);
+  if (!popupEl) {
+    popupEl = document.createElement("div");
+    popupEl.id = popupId;
+    popupEl.className = "story-popup";
+    popupContent = document.createElement("div");
+    popupContent.className = "story-popup-content";
+    popupEl.appendChild(popupContent);
+    document.body.appendChild(popupEl);
   } else {
-    popup.style.transform = "";
-    popup.style.opacity = "";
+    popupEl.classList.add("story-popup");
+    popupContent = popupEl.querySelector(".story-popup-content");
+    if (!popupContent) {
+      popupContent = document.createElement("div");
+      popupContent.className = "story-popup-content";
+      popupEl.appendChild(popupContent);
+    }
   }
-});
+
+  // Pointer events (works for touch and mouse)
+  popupEl.addEventListener("pointerdown", onPointerDown);
+  popupEl.addEventListener("pointermove", onPointerMove);
+  popupEl.addEventListener("pointerup", onPointerUp);
+  popupEl.addEventListener("pointercancel", onPointerUp);
+
+  // Ensure touchmove doesn't cause page scroll while dragging
+  popupEl.addEventListener(
+    "touchmove",
+    (e) => {
+      if (isDragging) e.preventDefault();
+    },
+    { passive: false }
+  );
+
+  // cleanup after transform transition (used on close)
+  popupEl.addEventListener("transitionend", (e) => {
+    if (e.propertyName === "transform" && !popupEl.classList.contains("active")) {
+      // fully closed -> reset inline styles
+      popupEl.style.transform = "";
+      popupEl.style.transition = "";
+      popupEl.style.opacity = "";
+      document.body.style.overflow = "";
+    }
+  });
+}
+
+// Immediately make popup visible (instant) — only closes by dragging down
+export function openStoryPopup() {
+  if (!popupEl) createStoryPopup();
+  // show instantly (no slide-in)
+  popupEl.classList.add("active");
+  popupEl.style.transition = ""; // ensure no show animation
+  popupEl.style.transform = "translateY(0)";
+  popupEl.style.opacity = "1";
+  document.body.style.overflow = "hidden"; // prevent background scroll while open
+}
+
+// Programmatic close (not used for background click; used internally after slide)
+export function closeStoryPopup() {
+  if (!popupEl) return;
+  popupEl.classList.remove("active");
+  popupEl.style.transform = "";
+  popupEl.style.opacity = "";
+  document.body.style.overflow = "";
+}
+
+/* ----- pointer handlers ----- */
+function onPointerDown(e) {
+  // only allow dragging if popup is active
+  if (!popupEl || !popupEl.classList.contains("active")) return;
+  // only primary mouse button
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+
+  activePointerId = e.pointerId;
+  try {
+    popupEl.setPointerCapture(activePointerId);
+  } catch (err) {
+    // ignore if not supported
+  }
+  startY = e.clientY;
+  lastY = startY;
+  isDragging = true;
+  // while dragging we want immediate transforms (no CSS transition)
+  popupEl.style.transition = "none";
+}
+
+function onPointerMove(e) {
+  if (!isDragging || e.pointerId !== activePointerId) return;
+  const deltaY = e.clientY - startY;
+  lastY = e.clientY;
+
+  // Only allow dragging down (positive delta)
+  if (deltaY > 0) {
+    popupEl.style.transform = `translateY(${deltaY}px)`;
+    // optional: slightly fade as user drags (helps feedback)
+    const fadeRatio = Math.max(0, 1 - deltaY / (window.innerHeight * 0.8));
+    popupEl.style.opacity = `${fadeRatio}`;
+  } else {
+    // don't let user drag up
+    popupEl.style.transform = `translateY(0)`;
+    popupEl.style.opacity = "1";
+  }
+}
+
+function onPointerUp(e) {
+  if (!isDragging || e.pointerId !== activePointerId) return;
+  isDragging = false;
+  try {
+    popupEl.releasePointerCapture(activePointerId);
+  } catch (err) {}
+
+  const delta = lastY - startY;
+
+  // set a closing animation for transform + opacity
+  popupEl.style.transition = "transform 250ms ease, opacity 200ms ease";
+
+  if (delta > THRESHOLD) {
+    // slide down off-screen and hide
+    popupEl.style.transform = `translateY(100vh)`;
+    popupEl.style.opacity = "0";
+    // transitionend handler will reset and restore body overflow
+  } else {
+    // snap back to fully visible
+    popupEl.style.transform = "";
+    popupEl.style.opacity = "1";
+    // clear transition after it finishes so next drag is immediate
+    setTimeout(() => {
+      popupEl.style.transition = "";
+    }, 260);
+  }
+}
