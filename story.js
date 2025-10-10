@@ -120,13 +120,21 @@ function showStoryPopup() {
   const popup = document.getElementById("storyPopup");
   const popupContent = popup.querySelector(".story-popup-content");
   
-  popup.style.display = "block"; // Show the popup
-  popupContent.style.transform = ""; // Reset any inline transform styles
+  // Disable transition temporarily for instant opening
+  popupContent.style.transition = "none";
   
-  // Trigger reflow to ensure transition works
+  popup.style.display = "block"; // Show the popup
+  popupContent.style.transform = "translateY(0)"; // Set to final position immediately
+  
+  // Trigger reflow
   popup.offsetHeight;
   
-  popup.classList.add("active"); // Trigger slide-down animation
+  popup.classList.add("active"); // Add active class
+  
+  // Re-enable transition after a brief delay for smooth dismissal
+  setTimeout(() => {
+    popupContent.style.transition = "transform 0.3s ease-out";
+  }, 50);
 }
 
 // Initialize the pop-up and render stories
