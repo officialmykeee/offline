@@ -40,7 +40,7 @@ function createStoryPopup() {
     if (!isDragging) return;
     isDragging = false;
     popupContent.style.transition = "transform 0.3s ease-out"; // Re-enable transition
-    const threshold = window.innerHeight * 0.5; // Dismiss if dragged 50% of screen height
+    const threshold = window.innerHeight * 0.15; // Dismiss if dragged 15% of screen height
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`; // Slide off screen
       setTimeout(() => {
@@ -74,7 +74,7 @@ function createStoryPopup() {
     if (!isDragging) return;
     isDragging = false;
     popupContent.style.transition = "transform 0.3s ease-out";
-    const threshold = window.innerHeight * 0.5;
+    const threshold = window.innerHeight * 0.15; // Dismiss if dragged 15% of screen height
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`;
       setTimeout(() => {
