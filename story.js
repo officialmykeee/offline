@@ -4,7 +4,11 @@ const stories = [
   { id: "2", username: "Michael", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face", hasNewStory: true },
 ];
 
+// --- Create Popup Once ---
 function createStoryPopup() {
+  // Prevent duplicate creation
+  if (document.getElementById("storyPopup")) return;
+
   const popup = document.createElement("div");
   popup.className = "story-popup";
   popup.id = "storyPopup";
@@ -14,12 +18,18 @@ function createStoryPopup() {
   document.body.appendChild(popup);
 
   const popupContent = popup.querySelector(".story-popup-content");
+
   let isDragging = false;
   let startY = 0;
   let currentY = 0;
   let translateY = 0;
 
-  // Mouse events
+  // Helper to hide popup
+  function hideStoryPopup() {
+    popup.classList.remove("active");
+  }
+
+  // --- Mouse Events ---
   popupContent.addEventListener("mousedown", (event) => {
     isDragging = true;
     startY = event.clientY;
@@ -43,7 +53,7 @@ function createStoryPopup() {
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`;
       setTimeout(() => {
-        popup.style.display = "none";
+        hideStoryPopup();
         popupContent.style.transform = "";
         popupContent.style.transition = "";
       }, 300);
@@ -53,7 +63,7 @@ function createStoryPopup() {
     translateY = 0;
   });
 
-  // Touch events
+  // --- Touch Events ---
   popupContent.addEventListener("touchstart", (event) => {
     isDragging = true;
     startY = event.touches[0].clientY;
@@ -77,7 +87,7 @@ function createStoryPopup() {
     if (translateY > threshold) {
       popupContent.style.transform = `translateY(${window.innerHeight}px)`;
       setTimeout(() => {
-        popup.style.display = "none";
+        hideStoryPopup();
         popupContent.style.transform = "";
         popupContent.style.transition = "";
       }, 300);
@@ -88,24 +98,41 @@ function createStoryPopup() {
   });
 }
 
+// --- Show Popup Instantly ---
+let popupCooldown = false;
+function showStoryPopup() {
+  if (popupCooldown) return;
+  popupCooldown = true;
+
+  const popup = document.getElementById("storyPopup");
+  if (!popup) return;
+
+  popup.classList.add("active");
+
+  // Prevent double-trigger
+  setTimeout(() => (popupCooldown = false), 400);
+}
+
+// --- Render Stories ---
 function renderStories() {
   const storiesList = document.getElementById("storiesList");
   if (!storiesList) {
     console.error("storiesList element not found!");
     return;
   }
-  
+
   storiesList.innerHTML = "";
+
   stories.forEach((story) => {
     const storyElement = document.createElement("div");
     storyElement.className = "story-item";
-    
+
     const avatarRingClass = story.isYourStory
       ? "your-story"
       : story.hasNewStory
       ? "has-story"
       : "your-story";
-    
+
     storyElement.innerHTML = `
       <div class="story-avatar-container" style="cursor: pointer;">
         <div class="story-avatar-ring ${avatarRingClass}">
@@ -117,29 +144,20 @@ function renderStories() {
       </div>
       <span class="story-username">${story.username}</span>
     `;
-    
-    // Add click event specifically to the avatar container for instant response
+
+    // Click triggers story popup instantly
     const avatarContainer = storyElement.querySelector(".story-avatar-container");
     avatarContainer.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       showStoryPopup();
     });
-    
+
     storiesList.appendChild(storyElement);
   });
 }
 
-function showStoryPopup() {
-  const popup = document.getElementById("storyPopup");
-  if (!popup) {
-    console.error("Popup not found!");
-    return;
-  }
-  popup.style.display = "block";
-}
-
-// Initialize - wait for DOM to be ready
+// --- Initialize ---
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     createStoryPopup();
@@ -149,4 +167,3 @@ if (document.readyState === "loading") {
   createStoryPopup();
   renderStories();
 }
-
