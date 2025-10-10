@@ -24,9 +24,19 @@
   text-align: center;
 }
 
-.story-popup-image {
+.story-popup-image-wrapper {
   width: 200px;
   height: 200px;
+}
+
+.image-container {
+  width: 100%;
+  height: 100%;
+}
+
+.story-popup-image {
+  width: 100%;
+  height: 100%;
   border-radius: 10px;
   object-fit: cover;
 }
@@ -35,18 +45,4 @@
   font-size: 16px;
   font-weight: 600;
   color: #374151;
-}
-
-.story-popup-close {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.story-popup-close:hover {
-  background-color: #2563eb;
 }
