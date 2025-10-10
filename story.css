@@ -7,8 +7,6 @@
   height: 100%;
   background-color: #000000; /* Solid black background */
   z-index: 100;
-  align-items: center;
-  justify-content: center;
 }
 
 .story-popup-content {
@@ -17,4 +15,9 @@
   height: 100%;
   transition: transform 0.3s ease-out; /* Smooth slide animation */
   touch-action: none; /* Prevent default touch scrolling */
+  transform: translateY(-100%); /* Start off-screen at top */
+}
+
+.story-popup.active .story-popup-content {
+  transform: translateY(0); /* Slide down to normal position */
 }
