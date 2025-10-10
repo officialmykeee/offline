@@ -1,23 +1,23 @@
 .story-popup {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #000000; /* Solid black background */
-  z-index: 100;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    z-index: 1000; /* Increased for safety */
 }
 
 .story-popup-content {
-  background-color: transparent;
-  width: 100%;
-  height: 100%;
-  touch-action: none; /* Prevent default touch scrolling */
-  transform: translateY(0); /* Start at normal position by default */
-  transition: none; /* No transition by default */
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    transform: translateY(-100%); /* Start off-screen at top */
 }
 
 .story-popup.active .story-popup-content {
-  transform: translateY(0); /* Stay at normal position when active */
+    transform: translateY(0);
+    transition: none; /* No transition on open */
 }
