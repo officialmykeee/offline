@@ -57,85 +57,105 @@
     <div class="story-popup-content"></div>
   </div>
 
-  <script type="module">
-    import { stories } from './story.js';
+    <script type="module">
+  import { stories, createStoryPopup, openStoryPopup } from './story.js';
 
-    const chats = [
-      { id: "1", name: "Emma Wilson", lastMessage: "Hey! Are we still on for dinner tonight?", timestamp: "2:34 PM", avatar: "EW", unreadCount: 2, isOnline: true },
-      { id: "2", name: "Family", lastMessage: "Mom: Don't forget about Sunday brunch!", timestamp: "1:15 PM", avatar: "F", unreadCount: 5 },
-    ];
+  const chats = [
+    {
+      id: "1",
+      name: "Emma Wilson",
+      lastMessage: "Hey! Are we still on for dinner tonight?",
+      timestamp: "2:34 PM",
+      avatar: "EW",
+      unreadCount: 2,
+      isOnline: true,
+    },
+    {
+      id: "2",
+      name: "Family",
+      lastMessage: "Mom: Don't forget about Sunday brunch!",
+      timestamp: "1:15 PM",
+      avatar: "F",
+      unreadCount: 5,
+    },
+  ];
 
-    function renderStories() {
-      const storiesList = document.getElementById("storiesList");
-      storiesList.innerHTML = "";
-      stories.forEach((story) => {
-        const storyElement = document.createElement("div");
-        storyElement.className = "story-item";
-        const avatarRingClass = story.isYourStory
-          ? "your-story"
-          : story.hasNewStory
-          ? "has-story"
-          : "your-story";
-        storyElement.innerHTML = `
-          <div class="story-avatar-container">
-            <div class="story-avatar-ring ${avatarRingClass}">
-              <div class="story-avatar-bg">
-                <img src="${story.avatar}" alt="${story.username}" class="story-avatar">
-              </div>
-            </div>
-            ${story.isYourStory ? '<div class="story-plus">+</div>' : ""}
-          </div>
-          <span class="story-username">${story.username}</span>
-        `;
+  // Create the popup element (this also sets up drag logic)
+  createStoryPopup("storyPopup");
 
-        // Story click = open popup
-        storyElement.addEventListener("click", () => {
-          const popup = document.getElementById("storyPopup");
-          popup.classList.add("active");
-        });
+  function renderStories() {
+    const storiesList = document.getElementById("storiesList");
+    storiesList.innerHTML = "";
+    stories.forEach((story) => {
+      const storyElement = document.createElement("div");
+      storyElement.className = "story-item";
 
-        storiesList.appendChild(storyElement);
-      });
-    }
+      const avatarRingClass = story.isYourStory
+        ? "your-story"
+        : story.hasNewStory
+        ? "has-story"
+        : "your-story";
 
-    function renderChats() {
-      const chatList = document.getElementById("chatList");
-      chatList.innerHTML = "";
-      chats.forEach((chat) => {
-        const chatElement = document.createElement("div");
-        chatElement.className = "chat-item";
-        const onlineIndicator = chat.isOnline ? '<div class="online-indicator"></div>' : "";
-        const unreadBadge = chat.unreadCount ? `<div class="unread-badge">${chat.unreadCount}</div>` : "";
-        const messageClass = chat.unreadCount ? "unread" : "";
-        chatElement.innerHTML = `
-          <div class="chat-content">
-            <div class="chat-avatar-container">
-              <div class="chat-avatar">${chat.avatar}</div>
-              ${onlineIndicator}
-            </div>
-            <div class="chat-details">
-              <div class="chat-header">
-                <h3 class="chat-name">${chat.name}</h3>
-                <div class="chat-meta">
-                  <span class="chat-timestamp">${chat.timestamp}</span>
-                  ${unreadBadge}
-                </div>
-              </div>
-              <p class="chat-message ${messageClass}">${chat.lastMessage}</p>
+      storyElement.innerHTML = `
+        <div class="story-avatar-container">
+          <div class="story-avatar-ring ${avatarRingClass}">
+            <div class="story-avatar-bg">
+              <img src="${story.avatar}" alt="${story.username}" class="story-avatar">
             </div>
           </div>
-        `;
-        chatList.appendChild(chatElement);
-      });
-    }
+          ${story.isYourStory ? '<div class="story-plus">+</div>' : ""}
+        </div>
+        <span class="story-username">${story.username}</span>
+      `;
 
-    renderStories();
-    renderChats();
+      // ✅ Open popup (only opens; not closed by tap)
+      storyElement.addEventListener("click", openStoryPopup);
 
-    // Close popup on click
-    document.getElementById("storyPopup").addEventListener("click", () => {
-      document.getElementById("storyPopup").classList.remove("active");
+      storiesList.appendChild(storyElement);
     });
-  </script>
+  }
+
+  function renderChats() {
+    const chatList = document.getElementById("chatList");
+    chatList.innerHTML = "";
+    chats.forEach((chat) => {
+      const chatElement = document.createElement("div");
+      chatElement.className = "chat-item";
+
+      const onlineIndicator = chat.isOnline
+        ? '<div class="online-indicator"></div>'
+        : "";
+      const unreadBadge = chat.unreadCount
+        ? `<div class="unread-badge">${chat.unreadCount}</div>`
+        : "";
+      const messageClass = chat.unreadCount ? "unread" : "";
+
+      chatElement.innerHTML = `
+        <div class="chat-content">
+          <div class="chat-avatar-container">
+            <div class="chat-avatar">${chat.avatar}</div>
+            ${onlineIndicator}
+          </div>
+          <div class="chat-details">
+            <div class="chat-header">
+              <h3 class="chat-name">${chat.name}</h3>
+              <div class="chat-meta">
+                <span class="chat-timestamp">${chat.timestamp}</span>
+                ${unreadBadge}
+              </div>
+            </div>
+            <p class="chat-message ${messageClass}">${chat.lastMessage}</p>
+          </div>
+        </div>
+      `;
+      chatList.appendChild(chatElement);
+    });
+  }
+
+  renderStories();
+  renderChats();
+
+  // ❌ Remove background click close — popup only closes by dragging down now
+</script>                
 </body>
 </html>
