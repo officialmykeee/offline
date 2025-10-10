@@ -24,7 +24,7 @@ export const stories = [
   },
 ];
 
-// --- Create popup ---
+// --- Create popup element ---
 const popup = document.createElement("div");
 popup.className = "story-popup";
 document.body.appendChild(popup);
@@ -44,10 +44,12 @@ export function closeStoryPopup() {
   popup.style.transform = "";
 }
 
-// --- Drag to slide down & close ---
+// --- Drag down to close (very sensitive) ---
 popup.addEventListener("touchstart", (e) => {
   startY = e.touches[0].clientY;
+  currentY = startY;
   isDragging = true;
+  popup.style.transition = ""; // disable during drag
 });
 
 popup.addEventListener("touchmove", (e) => {
@@ -55,27 +57,28 @@ popup.addEventListener("touchmove", (e) => {
   currentY = e.touches[0].clientY;
   const delta = currentY - startY;
 
-  // Only drag down
   if (delta > 0) {
     popup.style.transform = `translateY(${delta}px)`;
+    popup.style.opacity = `${1 - delta / 400}`; // slight fade as you pull
   }
 });
 
 popup.addEventListener("touchend", () => {
   isDragging = false;
   const delta = currentY - startY;
+  popup.style.transition = "transform 0.25s ease, opacity 0.25s ease";
 
-  // If dragged enough, close; else, snap back
-  if (delta > 120) {
-    popup.style.transition = "transform 0.25s ease";
+  // More sensitive threshold (just 60px)
+  if (delta > 60) {
     popup.style.transform = `translateY(100%)`;
+    popup.style.opacity = "0";
     setTimeout(() => {
       closeStoryPopup();
       popup.style.transition = "";
+      popup.style.opacity = "";
     }, 250);
   } else {
-    popup.style.transition = "transform 0.25s ease";
     popup.style.transform = "";
-    setTimeout(() => (popup.style.transition = ""), 250);
+    popup.style.opacity = "";
   }
 });
