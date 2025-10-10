@@ -1,19 +1,26 @@
-/* story.css */
+/* story.css - popup is an empty black full-screen cover, instant show, drag-only close */
 .story-popup {
   position: fixed;
   inset: 0;
-  background-color: black;
+  background-color: #000;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 100;
-  touch-action: none;
+  z-index: 1000;
+  touch-action: none; /* important: prevents default panning while using pointer events */
+  will-change: transform, opacity;
+  transform: translateY(0);
 }
 
 .story-popup.active {
+  /* instant appear (no entrance animation) */
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateY(0);
+}
+
+/* content is intentionally empty (user requested black-only popup) */
+.story-popup-content {
+  width: 100%;
+  height: 100%;
 }
