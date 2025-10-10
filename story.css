@@ -5,19 +5,19 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #000000;
-    z-index: 1000; /* Increased for safety */
+    background-color: #000000; /* Solid black background */
+    z-index: 1000; /* Increased to ensure pop-up is above other elements */
 }
 
 .story-popup-content {
     background-color: transparent;
     width: 100%;
     height: 100%;
-    touch-action: none;
+    touch-action: none; /* Prevent default touch scrolling */
     transform: translateY(-100%); /* Start off-screen at top */
 }
 
 .story-popup.active .story-popup-content {
-    transform: translateY(0);
-    transition: none; /* No transition on open */
+    transform: translateY(0); /* Move to visible position */
+    transition: none; /* No transition on open for instant appearance */
 }
