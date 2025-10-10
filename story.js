@@ -1,3 +1,4 @@
+
 const stories = [
   { id: "your-story", username: "Your story", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face", hasNewStory: false, isYourStory: true },
   { id: "1", username: "Emily", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face", hasNewStory: true },
@@ -13,11 +14,12 @@ function createStoryPopup() {
   `;
   document.body.appendChild(popup);
 
-  // Add event listener to close pop-up when clicking the background
-  popup.addEventListener("click", (event) => {
-    if (event.target.classList.contains("story-popup")) {
-      popup.style.display = "none";
-    }
+  // Add event listener to hide pop-up when clicking anywhere
+  popup.addEventListener("click", () => {
+    popup.classList.remove('show');
+    popup.addEventListener('transitionend', () => {
+      popup.style.display = 'none';
+    }, {once: true});
   });
 }
 
@@ -51,6 +53,9 @@ function renderStories() {
 function showStoryPopup() {
   const popup = document.getElementById("storyPopup");
   popup.style.display = "flex";
+  setTimeout(() => {
+    popup.classList.add('show');
+  }, 10);
 }
 
 // Initialize the pop-up and render stories
