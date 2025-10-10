@@ -1,33 +1,23 @@
 .story-popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 1000;
-    opacity: 0; /* Initial state */
-    pointer-events: none; /* Prevent interaction when hidden */
-}
-
-.story-popup.active {
-    display: block;
-    opacity: 1;
-    pointer-events: auto;
-    transition: none; /* Ensure no transition on open */
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000; /* Solid black background */
+  z-index: 100;
 }
 
 .story-popup-content {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 80%;
-    background: white;
-    transform: translateY(100%); /* Start off-screen */
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* Prevent default touch scrolling */
+  transform: translateY(0); /* Start at normal position by default */
+  transition: none; /* No transition by default */
 }
 
 .story-popup.active .story-popup-content {
-    transform: translateY(0); /* Slide in */
-    transition: none; /* No transition on open */
+  transform: translateY(0); /* Stay at normal position when active */
 }
