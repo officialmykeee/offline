@@ -1,3 +1,4 @@
+
 * {
   margin: 0;
   padding: 0;
@@ -92,7 +93,6 @@ body {
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-  cursor: pointer;
 }
 
 .story-avatar-container {
@@ -282,34 +282,5 @@ body {
 .chat-message.unread {
   color: black;
   font-weight: 500;
-}
-
-/* -------------------------------------- */
-/* NEW STORY POP-UP STYLES */
-/* -------------------------------------- */
-
-.story-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.9); /* Black background with slight transparency */
-  display: none; /* Hidden by default */
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-}
-
-.story-popup.open {
-  display: flex; /* Show when 'open' class is added */
-}
-
-/* This div will hold the actual story content if you add it later */
-.popup-content {
-  width: 100%;
-  height: 100%;
-  max-width: 100vw;
-  max-height: 100vh;
 }
 
