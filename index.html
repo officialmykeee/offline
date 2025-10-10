@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages App</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="story.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <svg
+          class="icon messages-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          style="color: #749cbf; fill: #749cbf;"
+        >
+          <path
+            d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+          />
+        </svg>
+        <h1 class="header-title">Messages</h1>
+        <div class="header-icons">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stories -->
+    <div class="stories-container" id="storiesContainer">
+      <div class="stories-scroll">
+        <div class="stories-list" id="storiesList"></div>
+      </div>
+    </div>
+
+    <!-- Chat List -->
+    <div class="chat-list" id="chatList"></div>
+
+    <!-- Story Pop-up -->
+    <div class="story-popup" id="storyPopup">
+      <div class="story-popup-content">
+        <img id="storyPopupImage" src="" alt="Story" class="story-popup-image" />
+        <span class="story-popup-username" id="storyPopupUsername"></span>
+        <button class="story-popup-close" id="storyPopupClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="story.js"></script>
+  <script>
+    const chats = [
+      { id: "1", name: "Emma Wilson", lastMessage: "Hey! Are we still on for dinner tonight?", timestamp: "2:34 PM", avatar: "EW", unreadCount: 2, isOnline: true },
+      { id: "2", name: "Family", lastMessage: "Mom: Don't forget about Sunday brunch!", timestamp: "1:15 PM", avatar: "F", unreadCount: 5 },
+    ];
+
+    function renderChats() {
+      const chatList = document.getElementById("chatList");
+      chatList.innerHTML = "";
+      chats.forEach((chat) => {
+        const chatElement = document.createElement("div");
+        chatElement.className = "chat-item";
+        const onlineIndicator = chat.isOnline ? '<div class="online-indicator"></div>' : "";
+        const unreadBadge = chat.unreadCount ? `<div class="unread-badge">${chat.unreadCount}</div>` : "";
+        const messageClass = chat.unreadCount ? "unread" : "";
+        chatElement.innerHTML = `
+          <div class="chat-content">
+            <div class="chat-avatar-container">
+              <div class="chat-avatar">${chat.avatar}</div>
+              ${onlineIndicator}
+            </div>
+            <div class="chat-details">
+              <div class="chat-header">
+                <h3 class="chat-name">${chat.name}</h3>
+                <div class="chat-meta">
+                  <span class="chat-timestamp">${chat.timestamp}</span>
+                  ${unreadBadge}
+                </div>
+              </div>
+              <p class="chat-message ${messageClass}">${chat.lastMessage}</p>
+            </div>
+          </div>
+        `;
+        chatList.appendChild(chatElement);
+      });
+    }
+
+    renderChats();
+  </script>
+</body>
+</html>
