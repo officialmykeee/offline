@@ -11,15 +11,22 @@ function createStoryPopup() {
   popup.id = "storyPopup";
   popup.innerHTML = `
     <div class="story-popup-content">
-      <img id="storyPopupImage" src="" alt="Story" class="story-popup-image" />
+      <div class="story-popup-image-wrapper">
+        <div class="image-container">
+          <img id="storyPopupImage" src="" alt="Story" class="story-popup-image" />
+        </div>
+      </div>
       <span class="story-popup-username" id="storyPopupUsername"></span>
-      <button class="story-popup-close" id="storyPopupClose">Close</button>
     </div>
   `;
   document.body.appendChild(popup);
 
-  // Add event listener for the close button
-  document.getElementById("storyPopupClose").addEventListener("click", closeStoryPopup);
+  // Add event listener to close pop-up when clicking outside content
+  popup.addEventListener("click", (event) => {
+    if (event.target.classList.contains("story-popup")) {
+      popup.style.display = "none";
+    }
+  });
 }
 
 function renderStories() {
@@ -58,11 +65,6 @@ function showStoryPopup(story) {
   popupImage.alt = story.username;
   popupUsername.textContent = story.username;
   popup.style.display = "flex";
-}
-
-function closeStoryPopup() {
-  const popup = document.getElementById("storyPopup");
-  popup.style.display = "none";
 }
 
 // Initialize the pop-up and render stories
