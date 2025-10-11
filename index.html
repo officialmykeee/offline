@@ -52,7 +52,7 @@
     <div class="chat-list" id="chatList"></div>
   </div>
 
-  <!-- Story Popup is now created by story.js -->
+  <!-- Story Popup created dynamically by story.js -->
 
   <script type="module">
     import { stories, createStoryPopup, openStoryPopup } from './story.js';
@@ -77,12 +77,12 @@
       },
     ];
 
-    // Create the popup element (this also sets up drag logic)
     createStoryPopup();
 
     function renderStories() {
       const storiesList = document.getElementById("storiesList");
       storiesList.innerHTML = "";
+
       stories.forEach((story) => {
         const storyElement = document.createElement("div");
         storyElement.className = "story-item";
@@ -105,8 +105,8 @@
           <span class="story-username">${story.username}</span>
         `;
 
-        // ✅ Open popup (only opens; not closed by tap)
-        storyElement.addEventListener("click", openStoryPopup);
+        // ✅ Pass story to popup
+        storyElement.addEventListener("click", () => openStoryPopup(story));
 
         storiesList.appendChild(storyElement);
       });
@@ -115,6 +115,7 @@
     function renderChats() {
       const chatList = document.getElementById("chatList");
       chatList.innerHTML = "";
+
       chats.forEach((chat) => {
         const chatElement = document.createElement("div");
         chatElement.className = "chat-item";
@@ -151,6 +152,6 @@
 
     renderStories();
     renderChats();
-  </script>     
+  </script>
 </body>
 </html>
