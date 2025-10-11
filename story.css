@@ -27,8 +27,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1500px;
-  perspective-origin: center center;
+  perspective: 1200px;
 }
 
 /* 3D Cube Container */
@@ -59,15 +58,15 @@
 }
 
 .story-cube-front {
-  transform: translateZ(0px);
+  transform: translateZ(250px);
 }
 
 .story-cube-left {
-  transform: rotateY(90deg) translateZ(192px);
+  transform: rotateY(90deg) translateZ(250px);
 }
 
 .story-cube-right {
-  transform: rotateY(-90deg) translateZ(192px);
+  transform: rotateY(-90deg) translateZ(250px);
 }
 
 /* Content wrapper inside each face */
