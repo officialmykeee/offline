@@ -24,16 +24,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1000px;
+  perspective: 1200px;
   perspective-origin: center center;
 }
 
 /* 3D Cube */
 .story-cube {
   position: relative;
-  width: 100%;
-  max-width: 500px;
-  height: 100%;
+  width: 384px;
+  max-width: calc(100vw - 8px);
+  height: calc(100vh - 8px);
+  max-height: 100vh;
   transform-style: preserve-3d;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -58,12 +59,12 @@
   justify-content: center;
   padding: 4px;
   gap: 16px;
+  background-color: #000;
 }
 
 /* Rounded container for story content */
 .story-viewer-container {
   width: 100%;
-  max-width: 500px;
   flex: 1;
   border-radius: 9px;
   overflow: hidden;
@@ -179,7 +180,6 @@
 /* Bottom area - for reply input or "No views yet" */
 .story-bottom-area {
   width: 100%;
-  max-width: 500px;
   padding: 0 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   display: flex;
