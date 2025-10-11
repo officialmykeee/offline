@@ -32,10 +32,10 @@
 /* 3D Cube */
 .story-cube {
   position: relative;
-  width: 100%;
+  width: 84%;
   max-width: 500px;
   height: 100%;
-  max-height: calc(100vh - 8px);
+  max-height: calc(77vh - 8px);
   transform-style: preserve-3d;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
