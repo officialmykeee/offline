@@ -62,7 +62,7 @@ export function createStoryPopup() {
       </div>
     </div>
     <div class="story-bottom-area">
-      <!-- This will be dynamically filled based on story type -->
+      <!-- Will be dynamically filled based on story type -->
     </div>
   `;
 
@@ -113,12 +113,12 @@ export function openStoryPopup(story) {
     `;
   }
 
-  // Show different bottom area based on story type
+  // Show "No views yet" for Your story, or reply input for others
   const bottomArea = popupEl.querySelector(".story-bottom-area");
   if (bottomArea) {
     if (story.isYourStory) {
       bottomArea.innerHTML = `
-        <div class="story-views-text">No views yet</div>
+        <div class="story-no-views">No views yet</div>
       `;
     } else {
       bottomArea.innerHTML = `
