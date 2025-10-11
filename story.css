@@ -24,7 +24,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1200px;
+  perspective: 1000px;
   perspective-origin: center center;
 }
 
@@ -63,6 +63,7 @@
 /* Rounded container for story content */
 .story-viewer-container {
   width: 100%;
+  max-width: 500px;
   flex: 1;
   border-radius: 9px;
   overflow: hidden;
@@ -178,6 +179,7 @@
 /* Bottom area - for reply input or "No views yet" */
 .story-bottom-area {
   width: 100%;
+  max-width: 500px;
   padding: 0 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   display: flex;
