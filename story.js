@@ -115,13 +115,13 @@ export function openStoryPopup(story) {
     `;
   }
 
-  // Hide reply input for "Your story"
-  const replyContainer = popupEl.querySelector(".story-reply-container");
-  if (replyContainer) {
+  // Update reply input text based on story type
+  const replyPlaceholder = popupEl.querySelector(".story-reply-placeholder");
+  if (replyPlaceholder) {
     if (story.isYourStory) {
-      replyContainer.style.display = "none";
+      replyPlaceholder.textContent = "No views yet";
     } else {
-      replyContainer.style.display = "flex";
+      replyPlaceholder.textContent = "Reply privately...";
     }
   }
 
