@@ -47,6 +47,29 @@ export function createStoryPopup() {
   popupContent = document.createElement("div");
   popupContent.className = "story-popup-content";
   
+  // Create story viewer structure
+  popupContent.innerHTML = `
+    <div class="story-viewer">
+      <div class="story-header">
+        <div class="story-progress-bars">
+          <div class="story-progress-bar">
+            <div class="story-progress-fill"></div>
+          </div>
+        </div>
+        <div class="story-user-info">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
+               alt="User" 
+               class="story-user-avatar">
+          <div class="story-user-details">
+            <span class="story-user-name">Maggie</span>
+            <span class="story-user-time">@domingos_124 · 15m</span>
+          </div>
+        </div>
+      </div>
+      <div class="story-background"></div>
+    </div>
+  `;
+  
   // Append content to popup
   popupEl.appendChild(popupContent);
   
@@ -70,11 +93,8 @@ export function createStoryPopup() {
 
   // cleanup after transform transition (used on close)
   popupEl.addEventListener("transitionend", (e) => {
-    if (e.propertyName === "transform" && !popupEl.classList.contains("active")) {
-      // fully closed -> reset inline styles
-      popupEl.style.transform = "";
-      popupEl.style.transition = "";
-      popupEl.style.opacity = "";
+    if (e.propertyName === "opacity" && !popupEl.classList.contains("active")) {
+      // fully closed -> reset body overflow
       document.body.style.overflow = "";
     }
   });
@@ -85,9 +105,6 @@ export function openStoryPopup() {
   if (!popupEl) createStoryPopup();
   // show instantly (no slide-in)
   popupEl.classList.add("active");
-  popupEl.style.transition = ""; // ensure no show animation
-  popupEl.style.transform = "translateY(0)";
-  popupEl.style.opacity = "1";
   document.body.style.overflow = "hidden"; // prevent background scroll while open
 }
 
@@ -95,8 +112,6 @@ export function openStoryPopup() {
 export function closeStoryPopup() {
   if (!popupEl) return;
   popupEl.classList.remove("active");
-  popupEl.style.transform = "";
-  popupEl.style.opacity = "";
   document.body.style.overflow = "";
 }
 
@@ -116,8 +131,6 @@ function onPointerDown(e) {
   startY = e.clientY;
   lastY = startY;
   isDragging = true;
-  // while dragging we want immediate transforms (no CSS transition)
-  popupEl.style.transition = "none";
 }
 
 function onPointerMove(e) {
@@ -127,14 +140,9 @@ function onPointerMove(e) {
 
   // Only allow dragging down (positive delta)
   if (deltaY > 0) {
-    popupEl.style.transform = `translateY(${deltaY}px)`;
-    // optional: slightly fade as user drags (helps feedback)
-    const fadeRatio = Math.max(0, 1 - deltaY / (window.innerHeight * 0.8));
-    popupEl.style.opacity = `${fadeRatio}`;
+    // No visual feedback during drag - just track the movement
   } else {
     // don't let user drag up
-    popupEl.style.transform = `translateY(0)`;
-    popupEl.style.opacity = "1";
   }
 }
 
@@ -147,21 +155,9 @@ function onPointerUp(e) {
 
   const delta = lastY - startY;
 
-  // set a closing animation for transform + opacity
-  popupEl.style.transition = "transform 250ms ease, opacity 200ms ease";
-
   if (delta > THRESHOLD) {
-    // slide down off-screen and hide
-    popupEl.style.transform = `translateY(100vh)`;
-    popupEl.style.opacity = "0";
-    // transitionend handler will reset and restore body overflow
-  } else {
-    // snap back to fully visible
-    popupEl.style.transform = "";
-    popupEl.style.opacity = "1";
-    // clear transition after it finishes so next drag is immediate
-    setTimeout(() => {
-      popupEl.style.transition = "";
-    }, 260);
+    // Just close immediately - no animation
+    closeStoryPopup();
   }
+  // If under threshold, do nothing (story stays open)
 }
