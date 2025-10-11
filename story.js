@@ -61,6 +61,11 @@ export function createStoryPopup() {
         <div class="story-background"></div>
       </div>
     </div>
+    <div class="story-reply-container">
+      <div class="story-reply-input">
+        <span class="story-reply-placeholder">Reply privately...</span>
+      </div>
+    </div>
   `;
 
   popupEl.appendChild(popupContent);
@@ -108,6 +113,16 @@ export function openStoryPopup(story) {
         <span class="story-user-time">${timestamp}</span>
       </div>
     `;
+  }
+
+  // Hide reply input for "Your story"
+  const replyContainer = popupEl.querySelector(".story-reply-container");
+  if (replyContainer) {
+    if (story.isYourStory) {
+      replyContainer.style.display = "none";
+    } else {
+      replyContainer.style.display = "flex";
+    }
   }
 
   popupEl.classList.add("active");
