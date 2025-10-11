@@ -113,7 +113,7 @@ function renderAllStories() {
     
     // Position each face around the cube
     const rotationY = index * 90;
-    face.style.transform = `rotateY(${rotationY}deg) translateZ(150px)`;
+    face.style.transform = `rotateY(${rotationY}deg) translateZ(192px)`;
     
     face.innerHTML = createStoryContent(story);
     cube.appendChild(face);
