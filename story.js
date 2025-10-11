@@ -26,8 +26,8 @@ export const stories = [
 ];
 
 let popupEl = null;
-let popupContent = null;
-let cubeContainer = null;
+let scene = null;
+let cube = null;
 let activePointerId = null;
 let startX = 0;
 let startY = 0;
@@ -35,8 +35,9 @@ let lastX = 0;
 let lastY = 0;
 let isDragging = false;
 let currentStoryIndex = 0;
-const SWIPE_THRESHOLD = 80; // px required to trigger story switch
-const CLOSE_THRESHOLD = 120; // px required to trigger close (vertical)
+let currentRotation = 0;
+const SWIPE_THRESHOLD = 80;
+const CLOSE_THRESHOLD = 120;
 
 // Create popup element and wire handlers
 export function createStoryPopup() {
@@ -46,14 +47,16 @@ export function createStoryPopup() {
   popupEl.id = "storyPopup";
   popupEl.className = "story-popup";
 
-  popupContent = document.createElement("div");
-  popupContent.className = "story-popup-content";
+  // Create 3D scene
+  scene = document.createElement("div");
+  scene.className = "story-scene";
 
-  cubeContainer = document.createElement("div");
-  cubeContainer.className = "story-cube-container";
+  // Create cube
+  cube = document.createElement("div");
+  cube.className = "story-cube";
 
-  popupContent.appendChild(cubeContainer);
-  popupEl.appendChild(popupContent);
+  scene.appendChild(cube);
+  popupEl.appendChild(scene);
   document.body.appendChild(popupEl);
 
   popupEl.addEventListener("pointerdown", onPointerDown);
@@ -81,11 +84,12 @@ export function openStoryPopup(story) {
   if (!popupEl) createStoryPopup();
   if (!story) return;
 
-  // Find story index
   currentStoryIndex = stories.findIndex(s => s.id === story.id);
   if (currentStoryIndex === -1) currentStoryIndex = 0;
 
-  renderCurrentStory();
+  currentRotation = currentStoryIndex * -90;
+  renderAllStories();
+  applyCubeRotation(currentRotation, false);
   
   popupEl.classList.add("active");
   document.body.style.overflow = "hidden";
@@ -97,36 +101,23 @@ export function closeStoryPopup() {
   document.body.style.overflow = "";
 }
 
-// Render the current story with cube faces
-function renderCurrentStory() {
-  if (!cubeContainer) return;
+// Render all stories on cube faces
+function renderAllStories() {
+  if (!cube) return;
 
-  const story = stories[currentStoryIndex];
-  const prevStory = currentStoryIndex > 0 ? stories[currentStoryIndex - 1] : null;
-  const nextStory = currentStoryIndex < stories.length - 1 ? stories[currentStoryIndex + 1] : null;
+  cube.innerHTML = "";
 
-  cubeContainer.innerHTML = `
-    <div class="story-cube" style="transform: rotateY(0deg);">
-      <!-- Current Story (Front Face) -->
-      <div class="story-cube-face story-cube-front">
-        ${createStoryContent(story)}
-      </div>
-      
-      <!-- Previous Story (Left Face) -->
-      ${prevStory ? `
-        <div class="story-cube-face story-cube-left">
-          ${createStoryContent(prevStory)}
-        </div>
-      ` : ''}
-      
-      <!-- Next Story (Right Face) -->
-      ${nextStory ? `
-        <div class="story-cube-face story-cube-right">
-          ${createStoryContent(nextStory)}
-        </div>
-      ` : ''}
-    </div>
-  `;
+  stories.forEach((story, index) => {
+    const face = document.createElement("div");
+    face.className = "story-cube-face";
+    
+    // Position each face around the cube
+    const rotationY = index * 90;
+    face.style.transform = `rotateY(${rotationY}deg) translateZ(192px)`;
+    
+    face.innerHTML = createStoryContent(story);
+    cube.appendChild(face);
+  });
 }
 
 // Create story HTML content
@@ -172,28 +163,28 @@ function createStoryContent(story) {
   `;
 }
 
-// Navigate to previous/next story with cube animation
+// Apply rotation to cube
+function applyCubeRotation(rotation, animate = true) {
+  if (!cube) return;
+  
+  if (animate) {
+    cube.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+  } else {
+    cube.style.transition = 'none';
+  }
+  
+  cube.style.transform = `rotateY(${rotation}deg)`;
+}
+
+// Navigate to previous/next story
 function navigateStory(direction) {
   const newIndex = currentStoryIndex + direction;
   
-  // Boundary checks
   if (newIndex < 0 || newIndex >= stories.length) return;
   
-  const cube = cubeContainer.querySelector('.story-cube');
-  if (!cube) return;
-
-  // Apply rotation
-  const rotation = direction === 1 ? -90 : 90; // next = -90, prev = +90
-  cube.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-  cube.style.transform = `rotateY(${rotation}deg)`;
-
-  // Wait for animation, then update
-  setTimeout(() => {
-    currentStoryIndex = newIndex;
-    cube.style.transition = 'none';
-    cube.style.transform = 'rotateY(0deg)';
-    renderCurrentStory();
-  }, 400);
+  currentStoryIndex = newIndex;
+  currentRotation = currentStoryIndex * -90;
+  applyCubeRotation(currentRotation, true);
 }
 
 /* ----- pointer handlers ----- */
@@ -222,14 +213,13 @@ function onPointerMove(e) {
   const deltaX = lastX - startX;
   const deltaY = lastY - startY;
 
-  // Visual feedback during drag
-  const cube = cubeContainer?.querySelector('.story-cube');
-  if (cube && Math.abs(deltaX) > Math.abs(deltaY)) {
-    // Horizontal drag - show cube rotation preview
-    const maxRotation = 30; // degrees
-    const rotation = (deltaX / window.innerWidth) * maxRotation;
+  // Show rotation preview during drag
+  if (Math.abs(deltaX) > Math.abs(deltaY) && cube) {
+    const dragRotation = (deltaX / window.innerWidth) * 45;
+    const previewRotation = currentRotation + dragRotation;
+    
     cube.style.transition = 'none';
-    cube.style.transform = `rotateY(${rotation}deg)`;
+    cube.style.transform = `rotateY(${previewRotation}deg)`;
   }
 }
 
@@ -246,31 +236,25 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // Reset cube rotation
-  const cube = cubeContainer?.querySelector('.story-cube');
-  if (cube) {
-    cube.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-    cube.style.transform = 'rotateY(0deg)';
-  }
-
-  // Determine if horizontal or vertical swipe
+  // Determine gesture type
   if (absDeltaX > absDeltaY) {
     // Horizontal swipe - navigate stories
     if (absDeltaX > SWIPE_THRESHOLD) {
-      if (deltaX > 0) {
-        // Swipe right - go to previous story (only if not first)
-        if (currentStoryIndex > 0) {
-          navigateStory(-1);
-        }
+      if (deltaX > 0 && currentStoryIndex > 0) {
+        navigateStory(-1);
+      } else if (deltaX < 0 && currentStoryIndex < stories.length - 1) {
+        navigateStory(1);
       } else {
-        // Swipe left - go to next story (only if not last)
-        if (currentStoryIndex < stories.length - 1) {
-          navigateStory(1);
-        }
+        // Bounce back if at boundary
+        applyCubeRotation(currentRotation, true);
       }
+    } else {
+      // Snap back if didn't reach threshold
+      applyCubeRotation(currentRotation, true);
     }
   } else {
     // Vertical swipe - close popup
+    applyCubeRotation(currentRotation, true);
     if (deltaY > CLOSE_THRESHOLD) {
       closeStoryPopup();
     }
