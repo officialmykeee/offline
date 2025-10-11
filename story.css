@@ -1,14 +1,13 @@
-/* story.css - popup with story viewer design */
+/* story.css - popup with 3D cube story viewer */
 .story-popup {
   position: fixed;
   inset: 0;
-  background-color: transparent;
+  background-color: #000;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   z-index: 1000;
   touch-action: none;
-  will-change: opacity;
   transition: opacity 0.2s ease;
 }
 
@@ -18,34 +17,26 @@
   pointer-events: auto;
 }
 
-.story-popup-content {
+/* 3D Scene Container */
+.story-scene {
   width: 100%;
   height: 100%;
-  position: fixed;
-  inset: 0;
-  background-color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
   perspective: 1200px;
-}
-
-/* 3D Cube Container */
-.story-cube-container {
-  width: 100%;
-  max-width: 500px;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
+  perspective-origin: center center;
 }
 
 /* 3D Cube */
 .story-cube {
-  width: 100%;
-  height: 100%;
   position: relative;
+  width: 384px;
+  max-width: calc(100vw - 8px);
+  height: calc(100vh - 8px);
+  max-height: 100vh;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Cube Faces */
@@ -55,18 +46,7 @@
   height: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-}
-
-.story-cube-front {
-  transform: translateZ(250px);
-}
-
-.story-cube-left {
-  transform: rotateY(90deg) translateZ(250px);
-}
-
-.story-cube-right {
-  transform: rotateY(-90deg) translateZ(250px);
+  overflow: hidden;
 }
 
 /* Content wrapper inside each face */
@@ -79,12 +59,12 @@
   justify-content: center;
   padding: 4px;
   gap: 16px;
+  background-color: #000;
 }
 
 /* Rounded container for story content */
 .story-viewer-container {
   width: 100%;
-  max-width: 500px;
   flex: 1;
   border-radius: 9px;
   overflow: hidden;
@@ -200,7 +180,6 @@
 /* Bottom area - for reply input or "No views yet" */
 .story-bottom-area {
   width: 100%;
-  max-width: 500px;
   padding: 0 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   display: flex;
