@@ -24,17 +24,18 @@
   inset: 0;
   background-color: #000;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 4px;
+  gap: 16px;
 }
 
 /* Rounded container for story content */
 .story-viewer-container {
   width: 100%;
   max-width: 500px;
-  height: 100%;
-  max-height: 100%;
+  flex: 1;
   border-radius: 9px;
   overflow: hidden;
   position: relative;
@@ -144,4 +145,36 @@
   font-size: 13px;
   font-weight: 400;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Reply Input - positioned on black background */
+.story-reply-container {
+  width: 100%;
+  max-width: 500px;
+  padding: 0 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+}
+
+.story-reply-input {
+  width: 100%;
+  background-color: #2a2a2a;
+  border-radius: 24px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  cursor: text;
+  transition: background-color 0.2s;
+}
+
+.story-reply-input:hover {
+  background-color: #333333;
+}
+
+.story-reply-placeholder {
+  color: #8a8a8a;
+  font-size: 15px;
+  font-weight: 400;
+  user-select: none;
 }
