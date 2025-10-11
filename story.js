@@ -108,25 +108,33 @@ export function createStoryPopup() {
 export function openStoryPopup(storyData) {
   if (!popupEl) createStoryPopup();
   
-  // Update the story content with the clicked story's data
-  if (storyData) {
-    currentStory = storyData;
-    updateStoryContent(storyData);
-  }
-  
   // show instantly (no slide-in)
   popupEl.classList.add("active");
   document.body.style.overflow = "hidden"; // prevent background scroll while open
+  
+  // Update the story content with the clicked story's data
+  if (storyData) {
+    currentStory = storyData;
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => updateStoryContent(storyData), 0);
+  }
 }
 
 // Update story content dynamically
 function updateStoryContent(story) {
-  const avatarEl = document.getElementById("storyAvatar");
-  const usernameEl = document.getElementById("storyUsername");
-  const timeEl = document.getElementById("storyTime");
+  if (!popupEl) return;
   
-  if (avatarEl) avatarEl.src = story.avatar;
-  if (usernameEl) usernameEl.textContent = story.username;
+  const avatarEl = popupEl.querySelector("#storyAvatar");
+  const usernameEl = popupEl.querySelector("#storyUsername");
+  const timeEl = popupEl.querySelector("#storyTime");
+  
+  if (avatarEl) {
+    avatarEl.src = story.avatar;
+    avatarEl.alt = story.username;
+  }
+  if (usernameEl) {
+    usernameEl.textContent = story.username;
+  }
   if (timeEl) {
     // Show "Just Now" for "Your story", otherwise show timestamp
     timeEl.textContent = story.isYourStory ? "Just Now" : "15m";
