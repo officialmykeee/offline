@@ -49,24 +49,26 @@ export function createStoryPopup() {
   
   // Create story viewer structure
   popupContent.innerHTML = `
-    <div class="story-viewer">
-      <div class="story-header">
-        <div class="story-progress-bars">
-          <div class="story-progress-bar">
-            <div class="story-progress-fill"></div>
+    <div class="story-viewer-container">
+      <div class="story-viewer">
+        <div class="story-header">
+          <div class="story-progress-bars">
+            <div class="story-progress-bar">
+              <div class="story-progress-fill"></div>
+            </div>
+          </div>
+          <div class="story-user-info">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
+                 alt="User" 
+                 class="story-user-avatar">
+            <div class="story-user-details">
+              <span class="story-user-name">Maggie</span>
+              <span class="story-user-time">@domingos_124 · 15m</span>
+            </div>
           </div>
         </div>
-        <div class="story-user-info">
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
-               alt="User" 
-               class="story-user-avatar">
-          <div class="story-user-details">
-            <span class="story-user-name">Maggie</span>
-            <span class="story-user-time">@domingos_124 · 15m</span>
-          </div>
-        </div>
+        <div class="story-background"></div>
       </div>
-      <div class="story-background"></div>
     </div>
   `;
   
