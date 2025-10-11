@@ -61,10 +61,11 @@ export function createStoryPopup() {
         <div class="story-background"></div>
       </div>
     </div>
-    <div class="story-reply-container">
+    <div class="story-bottom-container">
       <div class="story-reply-input">
         <span class="story-reply-placeholder">Reply privately...</span>
       </div>
+      <div class="story-views-text">No views yet</div>
     </div>
   `;
 
@@ -115,14 +116,16 @@ export function openStoryPopup(story) {
     `;
   }
 
-  // Update reply input text based on story type
-  const replyPlaceholder = popupEl.querySelector(".story-reply-placeholder");
-  if (replyPlaceholder) {
-    if (story.isYourStory) {
-      replyPlaceholder.textContent = "No views yet";
-    } else {
-      replyPlaceholder.textContent = "Reply privately...";
-    }
+  // Show reply input or views text based on story type
+  const replyInput = popupEl.querySelector(".story-reply-input");
+  const viewsText = popupEl.querySelector(".story-views-text");
+  
+  if (story.isYourStory) {
+    if (replyInput) replyInput.style.display = "none";
+    if (viewsText) viewsText.style.display = "block";
+  } else {
+    if (replyInput) replyInput.style.display = "flex";
+    if (viewsText) viewsText.style.display = "none";
   }
 
   popupEl.classList.add("active");
