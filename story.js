@@ -33,27 +33,25 @@ let lastY = 0;
 let isDragging = false;
 const THRESHOLD = 120; // px required to trigger close
 
-// Create (or attach to existing) popup element and wire handlers
-export function createStoryPopup(popupId = "storyPopup") {
-  // find existing element by id or create it
-  popupEl = document.getElementById(popupId);
-  if (!popupEl) {
-    popupEl = document.createElement("div");
-    popupEl.id = popupId;
-    popupEl.className = "story-popup";
-    popupContent = document.createElement("div");
-    popupContent.className = "story-popup-content";
-    popupEl.appendChild(popupContent);
-    document.body.appendChild(popupEl);
-  } else {
-    popupEl.classList.add("story-popup");
-    popupContent = popupEl.querySelector(".story-popup-content");
-    if (!popupContent) {
-      popupContent = document.createElement("div");
-      popupContent.className = "story-popup-content";
-      popupEl.appendChild(popupContent);
-    }
-  }
+// Create popup element and wire handlers
+export function createStoryPopup() {
+  // Check if popup already exists
+  if (popupEl) return;
+
+  // Create popup element
+  popupEl = document.createElement("div");
+  popupEl.id = "storyPopup";
+  popupEl.className = "story-popup";
+  
+  // Create popup content container
+  popupContent = document.createElement("div");
+  popupContent.className = "story-popup-content";
+  
+  // Append content to popup
+  popupEl.appendChild(popupContent);
+  
+  // Append popup to body
+  document.body.appendChild(popupEl);
 
   // Pointer events (works for touch and mouse)
   popupEl.addEventListener("pointerdown", onPointerDown);
