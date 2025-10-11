@@ -56,6 +56,24 @@
   padding-top: max(12px, env(safe-area-inset-top));
 }
 
+/* Dark gradient overlay for readability */
+.story-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
 /* Progress Bars */
 .story-progress-bars {
   display: flex;
