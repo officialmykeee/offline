@@ -9,6 +9,7 @@
   z-index: 1000;
   touch-action: none;
   will-change: opacity;
+  transition: opacity 0.2s ease;
 }
 
 .story-popup.active {
@@ -23,6 +24,56 @@
   position: fixed;
   inset: 0;
   background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1500px;
+  perspective-origin: center center;
+}
+
+/* 3D Cube Container */
+.story-cube-container {
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* 3D Cube */
+.story-cube {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Cube Faces */
+.story-cube-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.story-cube-front {
+  transform: translateZ(0px);
+}
+
+.story-cube-left {
+  transform: rotateY(90deg) translateZ(192px);
+}
+
+.story-cube-right {
+  transform: rotateY(-90deg) translateZ(192px);
+}
+
+/* Content wrapper inside each face */
+.story-content-wrapper {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
