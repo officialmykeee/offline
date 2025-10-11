@@ -31,6 +31,7 @@ let activePointerId = null;
 let startY = 0;
 let lastY = 0;
 let isDragging = false;
+let currentStory = null; // Track the current story being viewed
 const THRESHOLD = 120; // px required to trigger close
 
 // Create popup element and wire handlers
@@ -47,7 +48,7 @@ export function createStoryPopup() {
   popupContent = document.createElement("div");
   popupContent.className = "story-popup-content";
   
-  // Create story viewer structure
+  // Create story viewer structure (will be populated dynamically)
   popupContent.innerHTML = `
     <div class="story-viewer-container">
       <div class="story-viewer">
@@ -58,12 +59,13 @@ export function createStoryPopup() {
             </div>
           </div>
           <div class="story-user-info">
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
+            <img src="" 
                  alt="User" 
-                 class="story-user-avatar">
+                 class="story-user-avatar"
+                 id="storyAvatar">
             <div class="story-user-details">
-              <span class="story-user-name">Maggie</span>
-              <span class="story-user-time">@domingos_124 · 15m</span>
+              <span class="story-user-name" id="storyUsername"></span>
+              <span class="story-user-time" id="storyTime"></span>
             </div>
           </div>
         </div>
@@ -103,11 +105,32 @@ export function createStoryPopup() {
 }
 
 // Immediately make popup visible (instant) — only closes by dragging down
-export function openStoryPopup() {
+export function openStoryPopup(storyData) {
   if (!popupEl) createStoryPopup();
+  
+  // Update the story content with the clicked story's data
+  if (storyData) {
+    currentStory = storyData;
+    updateStoryContent(storyData);
+  }
+  
   // show instantly (no slide-in)
   popupEl.classList.add("active");
   document.body.style.overflow = "hidden"; // prevent background scroll while open
+}
+
+// Update story content dynamically
+function updateStoryContent(story) {
+  const avatarEl = document.getElementById("storyAvatar");
+  const usernameEl = document.getElementById("storyUsername");
+  const timeEl = document.getElementById("storyTime");
+  
+  if (avatarEl) avatarEl.src = story.avatar;
+  if (usernameEl) usernameEl.textContent = story.username;
+  if (timeEl) {
+    // Show "Just Now" for "Your story", otherwise show timestamp
+    timeEl.textContent = story.isYourStory ? "Just Now" : "15m";
+  }
 }
 
 // Programmatic close (not used for background click; used internally after slide)
