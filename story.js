@@ -36,19 +36,15 @@ const THRESHOLD = 120; // px required to trigger close
 
 // Create popup element and wire handlers
 export function createStoryPopup() {
-  // Check if popup already exists
   if (popupEl) return;
 
-  // Create popup element
   popupEl = document.createElement("div");
   popupEl.id = "storyPopup";
   popupEl.className = "story-popup";
-  
-  // Create popup content container
+
   popupContent = document.createElement("div");
   popupContent.className = "story-popup-content";
-  
-  // Create story viewer structure
+
   popupContent.innerHTML = `
     <div class="story-viewer-container">
       <div class="story-viewer">
@@ -59,33 +55,22 @@ export function createStoryPopup() {
             </div>
           </div>
           <div class="story-user-info">
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" 
-                 alt="User" 
-                 class="story-user-avatar">
-            <div class="story-user-details">
-              <span class="story-user-name">Maggie</span>
-              <span class="story-user-time">@domingos_124 · 15m</span>
-            </div>
+            <!-- This will be dynamically filled -->
           </div>
         </div>
         <div class="story-background"></div>
       </div>
     </div>
   `;
-  
-  // Append content to popup
+
   popupEl.appendChild(popupContent);
-  
-  // Append popup to body
   document.body.appendChild(popupEl);
 
-  // Pointer events (works for touch and mouse)
   popupEl.addEventListener("pointerdown", onPointerDown);
   popupEl.addEventListener("pointermove", onPointerMove);
   popupEl.addEventListener("pointerup", onPointerUp);
   popupEl.addEventListener("pointercancel", onPointerUp);
 
-  // Ensure touchmove doesn't cause page scroll while dragging
   popupEl.addEventListener(
     "touchmove",
     (e) => {
@@ -94,28 +79,26 @@ export function createStoryPopup() {
     { passive: false }
   );
 
-  // cleanup after transform transition (used on close)
   popupEl.addEventListener("transitionend", (e) => {
     if (e.propertyName === "opacity" && !popupEl.classList.contains("active")) {
-      // fully closed -> reset body overflow
       document.body.style.overflow = "";
     }
   });
 }
 
-// Immediately make popup visible (instant) — only closes by dragging down
+// Immediately make popup visible (instant)
 export function openStoryPopup(story) {
   if (!popupEl) createStoryPopup();
-  
-  // Store current story
+
+  if (!story) return; // safety check
+
   currentStory = story;
-  
-  // Update story content with user info
-  const userInfoContainer = popupEl.querySelector('.story-user-info');
-  if (userInfoContainer && story) {
+
+  const userInfoContainer = popupEl.querySelector(".story-user-info");
+  if (userInfoContainer) {
     const displayName = story.isYourStory ? "My Story" : story.username;
     const timestamp = story.isYourStory ? "3 minutes ago" : "15m";
-    
+
     userInfoContainer.innerHTML = `
       <img src="${story.avatar}" 
            alt="${displayName}" 
@@ -126,13 +109,11 @@ export function openStoryPopup(story) {
       </div>
     `;
   }
-  
-  // show instantly (no slide-in)
+
   popupEl.classList.add("active");
-  document.body.style.overflow = "hidden"; // prevent background scroll while open
+  document.body.style.overflow = "hidden";
 }
 
-// Programmatic close (not used for background click; used internally after slide)
 export function closeStoryPopup() {
   if (!popupEl) return;
   popupEl.classList.remove("active");
@@ -141,17 +122,14 @@ export function closeStoryPopup() {
 
 /* ----- pointer handlers ----- */
 function onPointerDown(e) {
-  // only allow dragging if popup is active
   if (!popupEl || !popupEl.classList.contains("active")) return;
-  // only primary mouse button
   if (e.pointerType === "mouse" && e.button !== 0) return;
 
   activePointerId = e.pointerId;
   try {
     popupEl.setPointerCapture(activePointerId);
-  } catch (err) {
-    // ignore if not supported
-  }
+  } catch {}
+
   startY = e.clientY;
   lastY = startY;
   isDragging = true;
@@ -162,11 +140,8 @@ function onPointerMove(e) {
   const deltaY = e.clientY - startY;
   lastY = e.clientY;
 
-  // Only allow dragging down (positive delta)
   if (deltaY > 0) {
-    // No visual feedback during drag - just track the movement
-  } else {
-    // don't let user drag up
+    // optionally, you can add visual feedback here
   }
 }
 
@@ -175,13 +150,11 @@ function onPointerUp(e) {
   isDragging = false;
   try {
     popupEl.releasePointerCapture(activePointerId);
-  } catch (err) {}
+  } catch {}
 
   const delta = lastY - startY;
 
   if (delta > THRESHOLD) {
-    // Just close immediately - no animation
     closeStoryPopup();
   }
-  // If under threshold, do nothing (story stays open)
 }
