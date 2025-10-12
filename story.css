@@ -70,17 +70,36 @@ _:-o-prefocus, .story-bottom-area {
 }
 
 /* Target only Opera Mini (via UA style override) */
+html.opera-mini .story-scene {
+  padding: 0 !important;
+}
+
 html.opera-mini .story-cube {
   max-height: 100vh !important;
-  margin-top: 160px !important;
+  width: 100% !important;
+  max-width: none !important;
 }
 
 html.opera-mini .story-content-wrapper {
   height: 100vh !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+html.opera-mini .story-viewer-container {
+  border-radius: 0 !important;
+  max-width: none !important;
 }
 
 html.opera-mini .story-bottom-area {
-  padding-bottom: 0 !important;
+  padding: 16px !important;
+  padding-bottom: 16px !important;
+  max-width: none !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: #000 !important;
 }
 
 /* Cube Faces */
