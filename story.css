@@ -305,7 +305,7 @@ html.opera-mini .story-bottom-area {
   @supports (-webkit-marquee-repetition: infinite) and (object-fit: fill) {
     .story-cube {
       max-height: 100vh !important;
-      margin-top: 170px !important;
+      margin-top: 140px !important;
     }
     .story-content-wrapper {
       height: 100vh !important;
