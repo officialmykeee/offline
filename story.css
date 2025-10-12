@@ -304,11 +304,11 @@ html.opera-mini .story-bottom-area {
 @media screen and (min-resolution: 0.001dpcm) {
   @supports (-webkit-marquee-repetition: infinite) and (object-fit: fill) {
     .story-cube {
-      max-height: 100vh !important;
+      max-height: 60vh !important;
       margin-top: 140px !important;
     }
     .story-content-wrapper {
-      height: 100vh !important;
+      height: 60vh !important;
     }
     .story-bottom-area {
       padding-bottom: 0 !important;
