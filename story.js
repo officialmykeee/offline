@@ -3,19 +3,28 @@
 
 // Detect Opera Mini and add class to html element
 function detectOperaMini() {
+  const ua = navigator.userAgent.toLowerCase();
   const isOperaMini = (
-    navigator.userAgent.indexOf('Opera Mini') > -1 ||
+    ua.indexOf('opera mini') > -1 ||
+    ua.indexOf('opr/') > -1 ||
     (typeof window.operamini !== 'undefined') ||
     Object.prototype.toString.call(window.operamini) === '[object OperaMini]'
   );
   
   if (isOperaMini) {
     document.documentElement.classList.add('opera-mini');
+    console.log('Opera Mini detected!');
+  } else {
+    console.log('Not Opera Mini. User Agent:', navigator.userAgent);
   }
 }
 
-// Call it immediately when the script loads
-detectOperaMini();
+// Call it when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', detectOperaMini);
+} else {
+  detectOperaMini();
+}
 
 export const stories = [
   {
