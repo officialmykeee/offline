@@ -300,3 +300,18 @@ html.opera-mini .story-bottom-area {
   font-weight: 400;
   user-select: none;
 }
+/* Opera Mini specific override */
+@media screen and (min-resolution: 0.001dpcm) {
+  @supports (-webkit-marquee-repetition: infinite) and (object-fit: fill) {
+    .story-cube {
+      max-height: 100vh !important;
+      margin-top: 170px !important;
+    }
+    .story-content-wrapper {
+      height: 100vh !important;
+    }
+    .story-bottom-area {
+      padding-bottom: 0 !important;
+    }
+  }
+    }
