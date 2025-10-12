@@ -84,6 +84,11 @@ html.opera-mini .story-bottom-area {
   padding-bottom: 4px !important;
 }
 
+html.opera-mini .story-reply-input {
+    top: -5px;
+    position: relative;
+}
+
 /* Cube Faces */
 .story-cube-face {
   position: absolute;
