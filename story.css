@@ -69,6 +69,20 @@ _:-o-prefocus, .story-bottom-area {
   padding-bottom: 0; /* Remove bottom padding for minimal gap */
 }
 
+/* Target only Opera Mini (via UA style override) */
+html.opera-mini .story-cube {
+  max-height: 100vh !important;
+  margin-top: 160px !important;
+}
+
+html.opera-mini .story-content-wrapper {
+  height: 100vh !important;
+}
+
+html.opera-mini .story-bottom-area {
+  padding-bottom: 0 !important;
+}
+
 /* Cube Faces */
 .story-cube-face {
   position: absolute;
