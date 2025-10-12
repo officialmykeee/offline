@@ -1,5 +1,22 @@
 // story.js
 // export stories data + functions to create/open/close the popup
+
+// Detect Opera Mini and add class to html element
+function detectOperaMini() {
+  const isOperaMini = (
+    navigator.userAgent.indexOf('Opera Mini') > -1 ||
+    (typeof window.operamini !== 'undefined') ||
+    Object.prototype.toString.call(window.operamini) === '[object OperaMini]'
+  );
+  
+  if (isOperaMini) {
+    document.documentElement.classList.add('opera-mini');
+  }
+}
+
+// Call it immediately when the script loads
+detectOperaMini();
+
 export const stories = [
   {
     id: "your-story",
