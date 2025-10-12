@@ -72,7 +72,7 @@ _:-o-prefocus, .story-bottom-area {
 /* Target only Opera Mini (via UA style override) */
 html.opera-mini .story-cube {
   max-height: 81vh !important;
-  margin-top: 30px !important;
+  margin-top: 25px !important;
 }
 
 html.opera-mini .story-content-wrapper {
