@@ -32,7 +32,7 @@
 /* 3D Cube */
 .story-cube {
   position: relative;
-  width: 84%;
+  width: 86%;
   max-width: 500px;
   height: 100%;
   max-height: calc(78vh - 8px); /* Standard browsers */
@@ -48,6 +48,7 @@
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
   .story-cube {
     max-height: 100vh; /* Full viewport height to reach bottom */
+    margin-top: 120px;
   }
   .story-content-wrapper {
     height: 100vh; /* Match cube height */
