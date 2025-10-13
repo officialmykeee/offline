@@ -235,6 +235,15 @@ function navigateStoryItem(direction) {
   const currentStory = stories[currentStoryIndex];
   const newItemIndex = currentItemIndex + direction;
   
+  console.log('navigateStoryItem called:', {
+    direction,
+    currentStoryIndex,
+    currentItemIndex,
+    newItemIndex,
+    totalItems: currentStory.storyItems.length,
+    username: currentStory.username
+  });
+  
   // Check boundaries
   if (newItemIndex < 0) {
     // Go to previous user if available
@@ -254,6 +263,7 @@ function navigateStoryItem(direction) {
   
   // Update item index and re-render current face
   currentItemIndex = newItemIndex;
+  console.log('Updating to item index:', currentItemIndex);
   updateCurrentStoryFace();
 }
 
@@ -274,15 +284,24 @@ function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
 
-  // Check if tap is on tap zones
-  const target = e.target;
-  if (target.classList.contains('story-tap-left')) {
-    navigateStoryItem(-1);
-    return;
-  }
-  if (target.classList.contains('story-tap-right')) {
-    navigateStoryItem(1);
-    return;
+  // Check if tap is on tap zones (check target and its parents)
+  let target = e.target;
+  let isTapZone = false;
+  let tapDirection = null;
+  
+  // Check up to 5 parent levels for tap zone
+  for (let i = 0; i < 5 && target; i++) {
+    if (target.classList && target.classList.contains('story-tap-left')) {
+      isTapZone = true;
+      tapDirection = -1;
+      break;
+    }
+    if (target.classList && target.classList.contains('story-tap-right')) {
+      isTapZone = true;
+      tapDirection = 1;
+      break;
+    }
+    target = target.parentElement;
   }
 
   activePointerId = e.pointerId;
@@ -295,6 +314,11 @@ function onPointerDown(e) {
   lastX = startX;
   lastY = startY;
   isDragging = true;
+  
+  // Store tap direction if it's a tap zone
+  if (isTapZone) {
+    e.tapDirection = tapDirection;
+  }
 }
 
 function onPointerMove(e) {
@@ -318,7 +342,6 @@ function onPointerMove(e) {
 
 function onPointerUp(e) {
   if (!isDragging || e.pointerId !== activePointerId) return;
-  isDragging = false;
   
   try {
     popupEl.releasePointerCapture(activePointerId);
@@ -329,7 +352,44 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // Determine gesture type
+  // Check if it's a tap (minimal movement)
+  const isTap = absDeltaX < 10 && absDeltaY < 10;
+  
+  console.log('onPointerUp:', {
+    isTap,
+    deltaX,
+    deltaY,
+    absDeltaX,
+    absDeltaY,
+    clientX: e.clientX,
+    viewportWidth: window.innerWidth
+  });
+  
+  // If it's a tap, check if it was on a tap zone
+  if (isTap) {
+    // Calculate tap position relative to viewport
+    const tapX = e.clientX;
+    const viewportWidth = window.innerWidth;
+    
+    // Determine which zone was tapped (left 40% or right 60%)
+    if (tapX < viewportWidth * 0.4) {
+      // Left zone - previous story
+      console.log('Tapped LEFT zone - going to previous story item');
+      isDragging = false;
+      navigateStoryItem(-1);
+      return;
+    } else {
+      // Right zone - next story
+      console.log('Tapped RIGHT zone - going to next story item');
+      isDragging = false;
+      navigateStoryItem(1);
+      return;
+    }
+  }
+
+  isDragging = false;
+
+  // Determine gesture type for swipes
   if (absDeltaX > absDeltaY) {
     // Horizontal swipe - navigate between users (cube rotation)
     if (absDeltaX > SWIPE_THRESHOLD) {
