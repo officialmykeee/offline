@@ -1,4 +1,4 @@
-/* story.css - popup with 3D cube story viewer */
+/* story.css - popup with 3D cube story viewer + multi-story support */
 .story-popup {
   position: fixed;
   inset: 0;
@@ -35,7 +35,7 @@
   width: 86%;
   max-width: 500px;
   height: 100%;
-  max-height: calc(78vh - 8px); /* Standard browsers */
+  max-height: calc(78vh - 8px);
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   -o-transform-style: preserve-3d;
@@ -47,26 +47,26 @@
 /* Opera Mini-specific hack to increase max-height and eliminate bottom space */
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
   .story-cube {
-    max-height: 100vh; /* Full viewport height to reach bottom */
+    max-height: 100vh;
     margin-top: 120px;
   }
   .story-content-wrapper {
-    height: 100vh; /* Match cube height */
+    height: 100vh;
   }
   .story-bottom-area {
-    padding-bottom: 0; /* Remove bottom padding for minimal gap */
+    padding-bottom: 0;
   }
 }
 
 /* Additional fallback for older Opera Mini versions */
 _:-o-prefocus, .story-cube {
-  max-height: 100vh; /* Full viewport height to reach bottom */
+  max-height: 100vh;
 }
 _:-o-prefocus, .story-content-wrapper {
-  height: 100vh; /* Match cube height */
+  height: 100vh;
 }
 _:-o-prefocus, .story-bottom-area {
-  padding-bottom: 0; /* Remove bottom padding for minimal gap */
+  padding-bottom: 0;
 }
 
 /* Target only Opera Mini (via UA style override) */
@@ -99,11 +99,32 @@ html.opera-mini .story-reply-input {
   overflow: hidden;
 }
 
+/* Internal story container - holds multiple stories per user */
+.story-internal-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Internal story slides - instant switching with display */
+.story-internal-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+.story-internal-slide.active {
+  display: block;
+}
+
 /* Content wrapper inside each face */
 .story-content-wrapper {
   width: 100%;
   height: 78vh;
-  height: -o-calc(78 * 1vh); /* Opera Mini fallback (overridden in hacks) */
+  height: -o-calc(78 * 1vh);
   display: flex;
   display: -webkit-flex;
   flex-direction: column;
@@ -146,6 +167,14 @@ html.opera-mini .story-reply-input {
     #a18cd1 75%, 
     #fbc2eb 100%
   );
+  z-index: 0;
+}
+
+/* Black Background - for second internal story */
+.story-background-black {
+  position: absolute;
+  inset: 0;
+  background: #000000;
   z-index: 0;
 }
 
@@ -192,21 +221,18 @@ html.opera-mini .story-reply-input {
 
 .story-progress-fill {
   height: 100%;
-  width: 0; /* Start at 0 for animation */
+  width: 0%;
   background-color: rgba(255, 255, 255, 0.9);
   transform-origin: left;
-  animation: progress 5s linear forwards; /* 5s progress animation */
+  transition: width 0.3s ease;
 }
 
-@keyframes progress {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-.story-progress-fill-complete {
-  height: 100%;
+.story-progress-fill.filled {
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.story-progress-fill.current {
+  width: 100%;
 }
 
 /* User Info */
@@ -242,27 +268,6 @@ html.opera-mini .story-reply-input {
   font-size: 13px;
   font-weight: 400;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* Tap Zones for Story Navigation */
-.story-tap-zones {
-  position: absolute;
-  inset: 0;
-  z-index: 15; /* Above story-header (z-index: 10) */
-  display: flex;
-}
-
-.story-tap-left,
-.story-tap-right {
-  flex: 1; /* Equal 50%/50% split */
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Enhanced visual feedback on tap */
-.story-tap-left:active,
-.story-tap-right:active {
-  background-color: rgba(255, 255, 255, 0.1); /* Slightly stronger feedback */
 }
 
 /* Bottom area - for reply input or "No views yet" */
