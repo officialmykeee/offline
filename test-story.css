@@ -3,11 +3,12 @@
   position: fixed;
   inset: 0;
   background-color: #000;
-  z-index: 100;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  z-index: 1000;
+  touch-action: none;
+  transition: opacity 0.2s ease;
 }
 
 .story-popup.active {
@@ -16,184 +17,306 @@
   pointer-events: auto;
 }
 
-/* popup content area */
-.story-popup-content {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 1000px;
-  overflow: hidden;
-}
-
-/* cube wrapper */
-.story-cube {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  height: 78vh;
-  max-height: calc(78vh - 8px);
-  transform-style: preserve-3d;
-  transition: transform 0.6s ease-in-out;
-}
-
-/* cube faces (each user) */
-.story-face {
-  position: absolute;
-  inset: 0;
-  background-color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backface-visibility: hidden;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.story-face img {
+/* 3D Scene Container */
+.story-scene {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  perspective-origin: center center;
+  padding: 4px;
 }
 
-/* top content area (progress bar, name, close) */
-.story-top {
+/* 3D Cube */
+.story-cube {
+  position: relative;
+  width: 86%;
+  max-width: 500px;
+  height: 100%;
+  max-height: calc(78vh - 8px); /* Standard browsers */
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  -o-transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  -o-transition: -o-transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Opera Mini-specific hack to increase max-height and eliminate bottom space */
+@media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+  .story-cube {
+    max-height: 100vh; /* Full viewport height to reach bottom */
+    margin-top: 120px;
+  }
+  .story-content-wrapper {
+    height: 100vh; /* Match cube height */
+  }
+  .story-bottom-area {
+    padding-bottom: 0; /* Remove bottom padding for minimal gap */
+  }
+}
+
+/* Additional fallback for older Opera Mini versions */
+_:-o-prefocus, .story-cube {
+  max-height: 100vh; /* Full viewport height to reach bottom */
+}
+_:-o-prefocus, .story-content-wrapper {
+  height: 100vh; /* Match cube height */
+}
+_:-o-prefocus, .story-bottom-area {
+  padding-bottom: 0; /* Remove bottom padding for minimal gap */
+}
+
+/* Target only Opera Mini (via UA style override) */
+html.opera-mini .story-cube {
+  max-height: 86vh !important;
+  margin-top: 25px !important;
+  top: -12px !important;
+}
+
+html.opera-mini .story-content-wrapper {
+  height: 85vh !important;
+}
+
+html.opera-mini .story-bottom-area {
+  padding-bottom: 4px !important;
+}
+
+html.opera-mini .story-reply-input {
+  top: -5px !important;
+  position: relative !important;
+}
+
+/* Cube Faces */
+.story-cube-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+/* Content wrapper inside each face */
+.story-content-wrapper {
+  width: 100%;
+  height: 78vh;
+  height: -o-calc(78 * 1vh); /* Opera Mini fallback (overridden in hacks) */
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+  align-items: center;
+  -webkit-align-items: center;
+  justify-content: center;
+  -webkit-justify-content: center;
+  padding: 4px;
+  gap: 16px;
+}
+
+/* Rounded container for story content */
+.story-viewer-container {
+  width: 100%;
+  max-width: 500px;
+  flex: 1;
+  border-radius: 9px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Story Viewer Container */
+.story-viewer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Gradient Background */
+.story-background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    #ff9a9e 0%, 
+    #fecfef 25%, 
+    #fecfef 50%, 
+    #a18cd1 75%, 
+    #fbc2eb 100%
+  );
+  z-index: 0;
+}
+
+/* Story Header */
+.story-header {
+  position: relative;
+  z-index: 10;
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+/* Dark gradient overlay for readability */
+.story-header::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  padding: 9px 9px 0;
-  z-index: 10;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: -1;
+  pointer-events: none;
 }
 
-.story-progress {
+/* Progress Bars */
+.story-progress-bars {
   display: flex;
-  gap: 3px;
-  width: 100%;
-  height: 3px;
+  gap: 4px;
+  margin-bottom: 16px;
 }
 
 .story-progress-bar {
   flex: 1;
+  height: 2px;
   background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
 }
 
 .story-progress-fill {
-  width: 0%;
   height: 100%;
-  background-color: white;
-  transition: width 0.2s linear;
+  width: 0; /* Start at 0 for animation */
+  background-color: rgba(255, 255, 255, 0.9);
+  transform-origin: left;
+  animation: progress 5s linear forwards; /* 5s progress animation */
 }
 
-.story-top-info {
-  margin-top: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+@keyframes progress {
+  from { width: 0; }
+  to { width: 100%; }
 }
 
-.story-user {
+.story-progress-fill-complete {
+  height: 100%;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* User Info */
+.story-user-info {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
 }
 
 .story-user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 2px solid #fff;
   object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.story-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .story-user-name {
-  color: #fff;
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.story-close {
   color: white;
-  font-size: 22px;
-  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* story bottom area (reply input, etc.) */
-.story-bottom-area {
+.story-user-time {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  font-weight: 400;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Tap Zones for Story Navigation */
+.story-tap-zones {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 0 9px 9px;
+  inset: 0;
+  z-index: 15; /* Above story-header (z-index: 10) */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  z-index: 10;
+}
+
+.story-tap-left,
+.story-tap-right {
+  flex: 1; /* Equal 50%/50% split */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Enhanced visual feedback on tap */
+.story-tap-left:active,
+.story-tap-right:active {
+  background-color: rgba(255, 255, 255, 0.1); /* Slightly stronger feedback */
+}
+
+/* Bottom area - for reply input or "No views yet" */
+.story-bottom-area {
+  width: 100%;
+  max-width: 500px;
+  padding: 0 9px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  display: -webkit-flex;
+  justify-content: center;
+  -webkit-justify-content: center;
+}
+
+/* No views yet text - for Your story */
+.story-no-views {
+  color: white;
+  font-size: 15px;
+  font-weight: 400;
+  text-align: center;
+  padding: 14px 0;
+}
+
+/* Reply Input Container - for other stories */
+.story-reply-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .story-reply-input {
-  flex: 1;
-  background-color: rgba(255, 255, 255, 0.18);
-  border: none;
-  border-radius: 20px;
+  width: 100%;
+  background-color: #2a2a2a;
+  border-radius: 24px;
+  -webkit-border-radius: 24px;
+  -o-border-radius: 24px;
   padding: 9px 20px;
-  color: white;
-  font-size: 14px;
-  outline: none;
-}
-
-.story-send {
-  width: 34px;
-  height: 34px;
   display: flex;
+  display: -webkit-flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.25);
-  color: white;
-  cursor: pointer;
+  -webkit-align-items: center;
+  cursor: text;
+  transition: background-color 0.2s;
+  -webkit-transition: background-color 0.2s;
+  -o-transition: background-color 0.2s;
 }
 
-/* pointer tap zones for next/back */
-.story-tap-zone {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 50%;
-  z-index: 5;
+.story-reply-input:hover {
+  background-color: #333333;
 }
 
-.story-tap-left {
-  left: 0;
-}
-
-.story-tap-right {
-  right: 0;
-}
-
-/* disable animations for internal stories (instant snap) */
-.story-face.instant-switch img {
-  transition: none !important;
-}
-
-/* Opera Mini targeting */
-html.opera-mini .story-reply-input {
-  top: -5px;
-  position: relative;
-}
-
-/* background / responsiveness */
-@media (max-width: 768px) {
-  .story-cube {
-    max-width: 100%;
-    height: 78vh;
-    max-height: calc(78vh - 8px);
-  }
-  .story-popup-content {
-    background-color: black;
-  }
+.story-reply-placeholder {
+  color: #8a8a8a;
+  font-size: 15px;
+  font-weight: 400;
+  user-select: none;
 }
