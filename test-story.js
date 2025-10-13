@@ -37,7 +37,7 @@ export const stories = [
     internalStories: [
       {
         id: "your-story-1",
-        background: "gradient" // Uses existing gradient background
+        background: "gradient"
       }
     ]
   },
@@ -50,11 +50,11 @@ export const stories = [
     internalStories: [
       {
         id: "emily-1",
-        background: "gradient" // Existing gradient background
+        background: "gradient"
       },
       {
         id: "emily-2",
-        background: "black" // New black background
+        background: "black"
       }
     ]
   },
@@ -87,7 +87,7 @@ let currentInternalStoryIndex = 0;
 let currentRotation = 0;
 const SWIPE_THRESHOLD = 80;
 const CLOSE_THRESHOLD = 120;
-const TAP_THRESHOLD = 10; // For detecting tap vs. drag
+const TAP_THRESHOLD = 10;
 
 // Create popup element and wire handlers
 export function createStoryPopup() {
@@ -97,11 +97,9 @@ export function createStoryPopup() {
   popupEl.id = "storyPopup";
   popupEl.className = "story-popup";
 
-  // Create 3D scene
   scene = document.createElement("div");
   scene.className = "story-scene";
 
-  // Create cube
   cube = document.createElement("div");
   cube.className = "story-cube";
 
@@ -136,7 +134,7 @@ export function openStoryPopup(story) {
 
   currentUserIndex = stories.findIndex(s => s.id === story.id);
   if (currentUserIndex === -1) currentUserIndex = 0;
-  currentInternalStoryIndex = 0; // Always start at first internal story
+  currentInternalStoryIndex = 0;
 
   currentRotation = currentUserIndex * -90;
   renderAllStories();
@@ -163,15 +161,12 @@ function renderAllStories() {
     const face = document.createElement("div");
     face.className = "story-cube-face";
     
-    // Position each face around the cube
     const rotationY = index * 90;
     face.style.transform = `rotateY(${rotationY}deg) translateZ(192px)`;
     
-    // Create a container for internal stories
     const internalStoriesContainer = document.createElement("div");
     internalStoriesContainer.className = "internal-stories-container";
     
-    // Render only the current internal story for this face
     const currentStory = story.internalStories[currentInternalStoryIndex] || story.internalStories[0];
     internalStoriesContainer.innerHTML = createStoryContent(story, currentStory);
     
@@ -201,8 +196,8 @@ function createStoryContent(story, internalStory) {
   const bottomContent = story.isYourStory 
     ? '<div class="story-no-views">No views yet</div>'
     : `<div class="story-reply-container">
-         <div class="story-reply-input">
-           <span class="story-reply-placeholder">Reply privately...</span>
+         <div class="story-reply-input" data-story-id="${internalStory.id}">
+           <span class="story-reply-placeholder">Reply to ${displayName}'s story...</span>
          </div>
        </div>`;
 
@@ -263,7 +258,7 @@ function navigateUser(direction) {
   if (newIndex < 0 || newIndex >= stories.length) return;
   
   currentUserIndex = newIndex;
-  currentInternalStoryIndex = 0; // Reset to first internal story
+  currentInternalStoryIndex = 0;
   currentRotation = currentUserIndex * -90;
   applyCubeRotation(currentRotation, true);
   renderInternalStory();
@@ -275,7 +270,6 @@ function navigateInternalStory(direction) {
   const newIndex = currentInternalStoryIndex + direction;
   
   if (newIndex < 0 || newIndex >= currentStory.internalStories.length) {
-    // Move to next/previous user if at boundary
     navigateUser(direction);
     return;
   }
@@ -310,7 +304,6 @@ function onPointerMove(e) {
   const deltaX = lastX - startX;
   const deltaY = lastY - startY;
 
-  // Show rotation preview during drag
   if (Math.abs(deltaX) > Math.abs(deltaY) && cube) {
     const dragRotation = (deltaX / window.innerWidth) * 45;
     const previewRotation = currentRotation + dragRotation;
@@ -333,38 +326,29 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // Detect tap vs. swipe
   if (absDeltaX < TAP_THRESHOLD && absDeltaY < TAP_THRESHOLD) {
-    // Handle tap navigation
     const halfWidth = window.innerWidth / 2;
     if (startX > halfWidth) {
-      // Tap right side - next internal story
       navigateInternalStory(1);
     } else {
-      // Tap left side - previous internal story
       navigateInternalStory(-1);
     }
     return;
   }
 
-  // Handle swipe gestures
   if (absDeltaX > absDeltaY) {
-    // Horizontal swipe - navigate users
     if (absDeltaX > SWIPE_THRESHOLD) {
       if (deltaX > 0 && currentUserIndex > 0) {
         navigateUser(-1);
       } else if (deltaX < 0 && currentUserIndex < stories.length - 1) {
         navigateUser(1);
       } else {
-        // Bounce back if at boundary
         applyCubeRotation(currentRotation, true);
       }
     } else {
-      // Snap back if didn't reach threshold
       applyCubeRotation(currentRotation, true);
     }
   } else {
-    // Vertical swipe - close popup
     applyCubeRotation(currentRotation, true);
     if (deltaY > CLOSE_THRESHOLD) {
       closeStoryPopup();
