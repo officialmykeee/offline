@@ -1,5 +1,5 @@
 // story.js
-// Enhanced with multi-story support per user and tap navigation
+// export stories data + functions to create/open/close the popup
 
 // Detect Opera Mini and add class to html element
 function detectOperaMini() {
@@ -35,7 +35,10 @@ export const stories = [
     hasNewStory: false,
     isYourStory: true,
     internalStories: [
-      { type: "gradient" }
+      {
+        id: "your-story-1",
+        background: "gradient" // Uses existing gradient background
+      }
     ]
   },
   {
@@ -45,8 +48,14 @@ export const stories = [
       "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face",
     hasNewStory: true,
     internalStories: [
-      { type: "gradient" },
-      { type: "black" }
+      {
+        id: "emily-1",
+        background: "gradient" // Existing gradient background
+      },
+      {
+        id: "emily-2",
+        background: "black" // New black background
+      }
     ]
   },
   {
@@ -56,7 +65,10 @@ export const stories = [
       "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
     hasNewStory: true,
     internalStories: [
-      { type: "gradient" }
+      {
+        id: "michael-1",
+        background: "gradient"
+      }
     ]
   },
 ];
@@ -70,12 +82,12 @@ let startY = 0;
 let lastX = 0;
 let lastY = 0;
 let isDragging = false;
-let currentStoryIndex = 0;
-let currentInternalIndex = 0;
+let currentUserIndex = 0;
+let currentInternalStoryIndex = 0;
 let currentRotation = 0;
 const SWIPE_THRESHOLD = 80;
 const CLOSE_THRESHOLD = 120;
-const TAP_THRESHOLD = 10;
+const TAP_THRESHOLD = 10; // For detecting tap vs. drag
 
 // Create popup element and wire handlers
 export function createStoryPopup() {
@@ -117,19 +129,20 @@ export function createStoryPopup() {
   });
 }
 
-// Open story at specific index
+// Open story at specific user and internal story index
 export function openStoryPopup(story) {
   if (!popupEl) createStoryPopup();
   if (!story) return;
 
-  currentStoryIndex = stories.findIndex(s => s.id === story.id);
-  if (currentStoryIndex === -1) currentStoryIndex = 0;
-  
-  currentInternalIndex = 0;
-  currentRotation = currentStoryIndex * -90;
+  currentUserIndex = stories.findIndex(s => s.id === story.id);
+  if (currentUserIndex === -1) currentUserIndex = 0;
+  currentInternalStoryIndex = 0; // Always start at first internal story
+
+  currentRotation = currentUserIndex * -90;
   renderAllStories();
   applyCubeRotation(currentRotation, false);
-  
+  renderInternalStory();
+
   popupEl.classList.add("active");
   document.body.style.overflow = "hidden";
 }
@@ -140,7 +153,7 @@ export function closeStoryPopup() {
   document.body.style.overflow = "";
 }
 
-// Render all stories on cube faces
+// Render all users' stories on cube faces
 function renderAllStories() {
   if (!cube) return;
 
@@ -154,46 +167,36 @@ function renderAllStories() {
     const rotationY = index * 90;
     face.style.transform = `rotateY(${rotationY}deg) translateZ(192px)`;
     
-    // Create container for internal stories
-    const internalContainer = document.createElement("div");
-    internalContainer.className = "story-internal-container";
-    internalContainer.setAttribute("data-story-index", index);
+    // Create a container for internal stories
+    const internalStoriesContainer = document.createElement("div");
+    internalStoriesContainer.className = "internal-stories-container";
     
-    // Render all internal stories for this user
-    story.internalStories.forEach((internalStory, internalIdx) => {
-      const storySlide = document.createElement("div");
-      storySlide.className = "story-internal-slide";
-      storySlide.setAttribute("data-internal-index", internalIdx);
-      
-      if (index === currentStoryIndex && internalIdx === currentInternalIndex) {
-        storySlide.classList.add("active");
-      }
-      
-      storySlide.innerHTML = createStoryContent(story, internalStory, internalIdx, story.internalStories.length);
-      internalContainer.appendChild(storySlide);
-    });
+    // Render only the current internal story for this face
+    const currentStory = story.internalStories[currentInternalStoryIndex] || story.internalStories[0];
+    internalStoriesContainer.innerHTML = createStoryContent(story, currentStory);
     
-    face.appendChild(internalContainer);
+    face.appendChild(internalStoriesContainer);
     cube.appendChild(face);
   });
 }
 
+// Render specific internal story for the current user
+function renderInternalStory() {
+  const currentStory = stories[currentUserIndex];
+  const internalStory = currentStory.internalStories[currentInternalStoryIndex];
+  const face = cube.children[currentUserIndex];
+  const internalStoriesContainer = face.querySelector(".internal-stories-container");
+  
+  if (internalStoriesContainer) {
+    internalStoriesContainer.innerHTML = createStoryContent(currentStory, internalStory);
+  }
+}
+
 // Create story HTML content
-function createStoryContent(story, internalStory, internalIdx, totalInternal) {
+function createStoryContent(story, internalStory) {
   const displayName = story.isYourStory ? "My Story" : story.username;
   const timestamp = story.isYourStory ? "3 minutes ago" : "15m";
-
-  // Generate progress bars based on total internal stories
-  const progressBars = Array.from({ length: totalInternal }, (_, i) => {
-    const isFilled = i < internalIdx;
-    const isCurrent = i === internalIdx;
-    const fillClass = isFilled ? 'filled' : (isCurrent ? 'current' : '');
-    return `
-      <div class="story-progress-bar">
-        <div class="story-progress-fill ${fillClass}"></div>
-      </div>
-    `;
-  }).join('');
+  const backgroundClass = internalStory.background === "black" ? "story-background-black" : "story-background";
 
   const bottomContent = story.isYourStory 
     ? '<div class="story-no-views">No views yet</div>'
@@ -203,16 +206,13 @@ function createStoryContent(story, internalStory, internalIdx, totalInternal) {
          </div>
        </div>`;
 
-  // Determine background based on internal story type
-  const backgroundClass = internalStory.type === "black" ? "story-background-black" : "story-background";
-
   return `
     <div class="story-content-wrapper">
       <div class="story-viewer-container">
         <div class="story-viewer">
           <div class="story-header">
             <div class="story-progress-bars">
-              ${progressBars}
+              ${createProgressBars(story.internalStories, internalStory.id)}
             </div>
             <div class="story-user-info">
               <img src="${story.avatar}" 
@@ -234,6 +234,15 @@ function createStoryContent(story, internalStory, internalIdx, totalInternal) {
   `;
 }
 
+// Create progress bars for internal stories
+function createProgressBars(internalStories, currentInternalStoryId) {
+  return internalStories.map((story, index) => `
+    <div class="story-progress-bar ${story.id === currentInternalStoryId ? 'active' : ''}">
+      <div class="story-progress-fill"></div>
+    </div>
+  `).join('');
+}
+
 // Apply rotation to cube
 function applyCubeRotation(rotation, animate = true) {
   if (!cube) return;
@@ -247,63 +256,32 @@ function applyCubeRotation(rotation, animate = true) {
   cube.style.transform = `rotateY(${rotation}deg)`;
 }
 
-// Navigate to previous/next user story (with cube effect)
-function navigateStory(direction) {
-  const newIndex = currentStoryIndex + direction;
+// Navigate to previous/next user
+function navigateUser(direction) {
+  const newIndex = currentUserIndex + direction;
   
   if (newIndex < 0 || newIndex >= stories.length) return;
   
-  currentStoryIndex = newIndex;
-  currentInternalIndex = 0;
-  currentRotation = currentStoryIndex * -90;
-  
-  renderAllStories();
+  currentUserIndex = newIndex;
+  currentInternalStoryIndex = 0; // Reset to first internal story
+  currentRotation = currentUserIndex * -90;
   applyCubeRotation(currentRotation, true);
+  renderInternalStory();
 }
 
-// Navigate internal stories (instant, no animation)
+// Navigate to previous/next internal story
 function navigateInternalStory(direction) {
-  const currentStory = stories[currentStoryIndex];
-  if (!currentStory) return;
+  const currentStory = stories[currentUserIndex];
+  const newIndex = currentInternalStoryIndex + direction;
   
-  const newInternalIndex = currentInternalIndex + direction;
-  
-  if (newInternalIndex < 0 || newInternalIndex >= currentStory.internalStories.length) {
+  if (newIndex < 0 || newIndex >= currentStory.internalStories.length) {
+    // Move to next/previous user if at boundary
+    navigateUser(direction);
     return;
   }
   
-  currentInternalIndex = newInternalIndex;
-  updateInternalStoryDisplay();
-}
-
-// Update internal story display (instant switch)
-function updateInternalStoryDisplay() {
-  const activeFace = cube.querySelector(`.story-cube-face:nth-child(${currentStoryIndex + 1})`);
-  if (!activeFace) return;
-  
-  const allSlides = activeFace.querySelectorAll('.story-internal-slide');
-  
-  allSlides.forEach((slide, idx) => {
-    if (idx === currentInternalIndex) {
-      slide.classList.add('active');
-    } else {
-      slide.classList.remove('active');
-    }
-  });
-}
-
-// Handle tap on left/right side of screen
-function handleTap(clientX) {
-  const screenWidth = window.innerWidth;
-  const tapZone = screenWidth / 3;
-  
-  if (clientX < tapZone) {
-    // Left tap - previous internal story
-    navigateInternalStory(-1);
-  } else if (clientX > screenWidth - tapZone) {
-    // Right tap - next internal story
-    navigateInternalStory(1);
-  }
+  currentInternalStoryIndex = newIndex;
+  renderInternalStory();
 }
 
 /* ----- pointer handlers ----- */
@@ -355,20 +333,28 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // Check if it's a tap (minimal movement)
+  // Detect tap vs. swipe
   if (absDeltaX < TAP_THRESHOLD && absDeltaY < TAP_THRESHOLD) {
-    handleTap(e.clientX);
+    // Handle tap navigation
+    const halfWidth = window.innerWidth / 2;
+    if (startX > halfWidth) {
+      // Tap right side - next internal story
+      navigateInternalStory(1);
+    } else {
+      // Tap left side - previous internal story
+      navigateInternalStory(-1);
+    }
     return;
   }
 
-  // Determine gesture type
+  // Handle swipe gestures
   if (absDeltaX > absDeltaY) {
-    // Horizontal swipe - navigate between users
+    // Horizontal swipe - navigate users
     if (absDeltaX > SWIPE_THRESHOLD) {
-      if (deltaX > 0 && currentStoryIndex > 0) {
-        navigateStory(-1);
-      } else if (deltaX < 0 && currentStoryIndex < stories.length - 1) {
-        navigateStory(1);
+      if (deltaX > 0 && currentUserIndex > 0) {
+        navigateUser(-1);
+      } else if (deltaX < 0 && currentUserIndex < stories.length - 1) {
+        navigateUser(1);
       } else {
         // Bounce back if at boundary
         applyCubeRotation(currentRotation, true);
