@@ -35,7 +35,7 @@
   width: 86%;
   max-width: 500px;
   height: 100%;
-  max-height: calc(78vh - 8px); /* Standard browsers */
+  max-height: calc(78vh - 8px);
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   -o-transform-style: preserve-3d;
@@ -44,32 +44,30 @@
   -o-transition: -o-transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Opera Mini-specific hack to increase max-height and eliminate bottom space */
+/* Opera Mini-specific hacks */
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
   .story-cube {
-    max-height: 100vh; /* Full viewport height to reach bottom */
+    max-height: 100vh;
     margin-top: 120px;
   }
   .story-content-wrapper {
-    height: 100vh; /* Match cube height */
+    height: 100vh;
   }
   .story-bottom-area {
-    padding-bottom: 0; /* Remove bottom padding for minimal gap */
+    padding-bottom: 0;
   }
 }
 
-/* Additional fallback for older Opera Mini versions */
 _:-o-prefocus, .story-cube {
-  max-height: 100vh; /* Full viewport height to reach bottom */
+  max-height: 100vh;
 }
 _:-o-prefocus, .story-content-wrapper {
-  height: 100vh; /* Match cube height */
+  height: 100vh;
 }
 _:-o-prefocus, .story-bottom-area {
-  padding-bottom: 0; /* Remove bottom padding for minimal gap */
+  padding-bottom: 0;
 }
 
-/* Target only Opera Mini (via UA style override) */
 html.opera-mini .story-cube {
   max-height: 86vh !important;
   margin-top: 25px !important;
@@ -105,11 +103,11 @@ html.opera-mini .story-reply-input {
   height: 100%;
 }
 
-/* Content wrapper inside each face */
+/* Content wrapper */
 .story-content-wrapper {
   width: 100%;
   height: 78vh;
-  height: -o-calc(78 * 1vh); /* Opera Mini fallback (overridden in hacks) */
+  height: -o-calc(78 * 1vh);
   display: flex;
   display: -webkit-flex;
   flex-direction: column;
@@ -122,7 +120,7 @@ html.opera-mini .story-reply-input {
   gap: 16px;
 }
 
-/* Rounded container for story content */
+/* Story Viewer Container */
 .story-viewer-container {
   width: 100%;
   max-width: 500px;
@@ -132,7 +130,7 @@ html.opera-mini .story-reply-input {
   position: relative;
 }
 
-/* Story Viewer Container */
+/* Story Viewer */
 .story-viewer {
   width: 100%;
   height: 100%;
@@ -141,7 +139,7 @@ html.opera-mini .story-reply-input {
   flex-direction: column;
 }
 
-/* Gradient Background */
+/* Backgrounds */
 .story-background {
   position: absolute;
   inset: 0;
@@ -155,7 +153,6 @@ html.opera-mini .story-reply-input {
   z-index: 0;
 }
 
-/* Black Background */
 .story-background-black {
   position: absolute;
   inset: 0;
@@ -171,7 +168,7 @@ html.opera-mini .story-reply-input {
   padding-top: max(12px, env(safe-area-inset-top));
 }
 
-/* Dark gradient overlay for readability */
+/* Dark gradient overlay */
 .story-header::before {
   content: '';
   position: absolute;
@@ -210,10 +207,10 @@ html.opera-mini .story-reply-input {
 
 .story-progress-fill {
   height: 100%;
-  width: 0; /* Start empty, filled for active story */
+  width: 0;
   background-color: rgba(255, 255, 255, 0.9);
   transform-origin: left;
-  transition: width 0.2s linear; /* Smooth fill for active state */
+  transition: width 0.2s linear;
 }
 
 /* User Info */
@@ -251,7 +248,7 @@ html.opera-mini .story-reply-input {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Bottom area - for reply input or "No views yet" */
+/* Bottom area */
 .story-bottom-area {
   width: 100%;
   max-width: 500px;
@@ -263,7 +260,7 @@ html.opera-mini .story-reply-input {
   -webkit-justify-content: center;
 }
 
-/* No views yet text - for Your story */
+/* No views yet text */
 .story-no-views {
   color: white;
   font-size: 15px;
@@ -272,7 +269,7 @@ html.opera-mini .story-reply-input {
   padding: 14px 0;
 }
 
-/* Reply Input Container - for other stories */
+/* Reply Input Container */
 .story-reply-container {
   width: 100%;
   display: flex;
