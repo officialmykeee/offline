@@ -1,4 +1,4 @@
-/* story.css - popup with 3D cube story viewer + multi-story support */
+/* story.css - popup with 3D cube story viewer */
 .story-popup {
   position: fixed;
   inset: 0;
@@ -35,7 +35,7 @@
   width: 86%;
   max-width: 500px;
   height: 100%;
-  max-height: calc(78vh - 8px);
+  max-height: calc(78vh - 8px); /* Standard browsers */
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   -o-transform-style: preserve-3d;
@@ -47,26 +47,26 @@
 /* Opera Mini-specific hack to increase max-height and eliminate bottom space */
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
   .story-cube {
-    max-height: 100vh;
+    max-height: 100vh; /* Full viewport height to reach bottom */
     margin-top: 120px;
   }
   .story-content-wrapper {
-    height: 100vh;
+    height: 100vh; /* Match cube height */
   }
   .story-bottom-area {
-    padding-bottom: 0;
+    padding-bottom: 0; /* Remove bottom padding for minimal gap */
   }
 }
 
 /* Additional fallback for older Opera Mini versions */
 _:-o-prefocus, .story-cube {
-  max-height: 100vh;
+  max-height: 100vh; /* Full viewport height to reach bottom */
 }
 _:-o-prefocus, .story-content-wrapper {
-  height: 100vh;
+  height: 100vh; /* Match cube height */
 }
 _:-o-prefocus, .story-bottom-area {
-  padding-bottom: 0;
+  padding-bottom: 0; /* Remove bottom padding for minimal gap */
 }
 
 /* Target only Opera Mini (via UA style override) */
@@ -85,8 +85,8 @@ html.opera-mini .story-bottom-area {
 }
 
 html.opera-mini .story-reply-input {
-  top: -5px !important;
-  position: relative !important;
+    top: -5px !important;
+    position: relative !important;
 }
 
 /* Cube Faces */
@@ -99,32 +99,17 @@ html.opera-mini .story-reply-input {
   overflow: hidden;
 }
 
-/* Internal story container - holds multiple stories per user */
-.story-internal-container {
-  position: relative;
+/* Internal Stories Container */
+.internal-stories-container {
   width: 100%;
   height: 100%;
-}
-
-/* Internal story slides - instant switching with display */
-.story-internal-slide {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: none;
-}
-
-.story-internal-slide.active {
-  display: block;
 }
 
 /* Content wrapper inside each face */
 .story-content-wrapper {
   width: 100%;
   height: 78vh;
-  height: -o-calc(78 * 1vh);
+  height: -o-calc(78 * 1vh); /* Opera Mini fallback (overridden in hacks) */
   display: flex;
   display: -webkit-flex;
   flex-direction: column;
@@ -170,11 +155,11 @@ html.opera-mini .story-reply-input {
   z-index: 0;
 }
 
-/* Black Background - for second internal story */
+/* Black Background */
 .story-background-black {
   position: absolute;
   inset: 0;
-  background: #000000;
+  background: #000;
   z-index: 0;
 }
 
@@ -219,20 +204,16 @@ html.opera-mini .story-reply-input {
   overflow: hidden;
 }
 
+.story-progress-bar.active .story-progress-fill {
+  width: 100%;
+}
+
 .story-progress-fill {
   height: 100%;
-  width: 0%;
+  width: 0; /* Start empty, filled for active story */
   background-color: rgba(255, 255, 255, 0.9);
   transform-origin: left;
-  transition: width 0.3s ease;
-}
-
-.story-progress-fill.filled {
-  width: 100%;
-}
-
-.story-progress-fill.current {
-  width: 100%;
+  transition: width 0.2s linear; /* Smooth fill for active state */
 }
 
 /* User Info */
