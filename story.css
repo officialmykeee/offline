@@ -85,8 +85,8 @@ html.opera-mini .story-bottom-area {
 }
 
 html.opera-mini .story-reply-input {
-    top: -5px;
-    position: relative;
+    top: -5px !important;
+    position: relative !important;
 }
 
 /* Cube Faces */
