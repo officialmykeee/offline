@@ -386,6 +386,9 @@ html.opera-mini .story-reply-input {
   transition: all 0.3s ease;
   -webkit-transition: all 0.3s ease;
   -o-transition: all 0.3s ease;
+  pointer-events: auto;
+  z-index: 1000;
+  position: relative;
 }
 
 .story-heart-icon:hover {
