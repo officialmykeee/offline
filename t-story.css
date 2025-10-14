@@ -9,6 +9,12 @@
   z-index: 1000;
   touch-action: none;
   transition: opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .story-popup.active {
@@ -128,6 +134,8 @@ html.opera-mini .story-reply-input {
   border-radius: 9px;
   overflow: hidden;
   position: relative;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
 /* Story Viewer */
@@ -137,6 +145,12 @@ html.opera-mini .story-reply-input {
   position: relative;
   display: flex;
   flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Media Container (for images/videos) */
@@ -147,6 +161,7 @@ html.opera-mini .story-reply-input {
   align-items: center;
   justify-content: center;
   z-index: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Media Background (blur or color) */
@@ -339,6 +354,8 @@ html.opera-mini .story-reply-input {
   display: -webkit-flex;
   align-items: center;
   -webkit-align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: text;
   transition: background-color 0.2s;
   -webkit-transition: background-color 0.2s;
@@ -354,4 +371,40 @@ html.opera-mini .story-reply-input {
   font-size: 15px;
   font-weight: 400;
   user-select: none;
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 40px);
+}
+
+/* Heart Icon */
+.story-heart-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-transition: all 0.3s ease;
+  -o-transition: all 0.3s ease;
+}
+
+.story-heart-icon:hover {
+  transform: scale(1.1);
+  -webkit-transform: scale(1.1);
+}
+
+.story-heart-icon:active {
+  transform: scale(0.95);
+  -webkit-transform: scale(0.95);
+}
+
+.story-heart-icon.liked {
+  color: #ff3b8e;
+}
+
+.story-heart-icon.liked path {
+  fill: #ff3b8e;
+  stroke: #ff3b8e;
 }
