@@ -256,12 +256,14 @@ function updateProgressBars() {
       // Reset to 0 before animating
       fill.style.transition = 'none';
       fill.style.width = '0';
+      bar.classList.add('active');
       // Force reflow to ensure reset applies
       void fill.offsetWidth;
-      // Start animation
-      bar.classList.add('active');
-      fill.style.transition = `width ${STORY_DURATION}ms linear`;
-      fill.style.width = '100%';
+      // Use requestAnimationFrame to ensure animation triggers
+      requestAnimationFrame(() => {
+        fill.style.transition = `width ${STORY_DURATION}ms linear`;
+        fill.style.width = '100%';
+      });
     } else if (index < currentInternalStoryIndex) {
       bar.classList.remove('active');
       fill.style.transition = 'none';
