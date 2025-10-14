@@ -118,14 +118,16 @@ export function createStoryPopup() {
   popupEl.addEventListener("pointerup", onPointerUp);
   popupEl.addEventListener("pointercancel", onPointerUp);
 
-  // Heart icon click handler
-  popupEl.addEventListener("click", (e) => {
+  // Heart icon click handler (using pointerdown to prevent interference)
+  popupEl.addEventListener("pointerdown", (e) => {
     if (e.target.closest('.story-heart-icon')) {
       const heartIcon = e.target.closest('.story-heart-icon');
       heartIcon.classList.toggle('liked');
+      e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation();
     }
-  });
+  }, true); // Use capture phase
 
   popupEl.addEventListener(
     "touchmove",
@@ -475,6 +477,11 @@ function navigateInternalStory(direction) {
 function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
+  
+  // Ignore if clicking on heart icon or reply input
+  if (e.target.closest('.story-heart-icon') || e.target.closest('.story-reply-input')) {
+    return;
+  }
 
   activePointerId = e.pointerId;
   try {
