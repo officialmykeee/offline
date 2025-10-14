@@ -85,7 +85,7 @@ let isDragging = false;
 let currentUserIndex = 0;
 let currentInternalStoryIndex = 0;
 let currentRotation = 0;
-let progressInterval = null;
+let progressTimer = null;
 const SWIPE_THRESHOLD = 80;
 const CLOSE_THRESHOLD = 120;
 const TAP_THRESHOLD = 10;
@@ -125,7 +125,7 @@ export function createStoryPopup() {
   popupEl.addEventListener("transitionend", (e) => {
     if (e.propertyName === "opacity" && !popupEl.classList.contains("active")) {
       document.body.style.overflow = "";
-      stopProgress(); // Ensure progress stops when popup closes
+      stopProgressTimer();
     }
   });
 }
@@ -143,7 +143,7 @@ export function openStoryPopup(story) {
   renderAllStories();
   applyCubeRotation(currentRotation, false);
   renderInternalStory();
-  startProgress();
+  startProgressTimer();
 
   popupEl.classList.add("active");
   document.body.style.overflow = "hidden";
@@ -151,9 +151,9 @@ export function openStoryPopup(story) {
 
 export function closeStoryPopup() {
   if (!popupEl) return;
-  stopProgress();
   popupEl.classList.remove("active");
   document.body.style.overflow = "";
+  stopProgressTimer();
 }
 
 // Render all users' stories on cube faces
@@ -244,53 +244,60 @@ function createProgressBars(internalStories, currentInternalStoryId) {
   `).join('');
 }
 
-// Start auto-filling progress bar
-function startProgress() {
-  stopProgress(); // Clear any existing interval
-  updateProgressBars();
-  
-  const progressBar = document.querySelector(`.story-progress-bar.active .story-progress-fill`);
-  if (!progressBar) return;
-
-  let progress = 0;
-  const increment = 100 / (STORY_DURATION / 16); // Approx 60fps (16ms per frame)
-
-  progressInterval = setInterval(() => {
-    progress += increment;
-    progressBar.style.width = `${progress}%`;
-
-    if (progress >= 100) {
-      stopProgress();
-      navigateInternalStory(1); // Move to next story
-    }
-  }, 16);
-}
-
-// Stop progress bar animation
-function stopProgress() {
-  if (progressInterval) {
-    clearInterval(progressInterval);
-    progressInterval = null;
-  }
-}
-
-// Update progress bars' visual state
+// Update progress bar fill animation
 function updateProgressBars() {
   const currentStory = stories[currentUserIndex];
-  const progressBars = document.querySelectorAll(`.story-cube-face:nth-child(${currentUserIndex + 1}) .story-progress-bar`);
+  const currentInternalStoryId = currentStory.internalStories[currentInternalStoryIndex].id;
+  const progressBars = cube.children[currentUserIndex].querySelectorAll('.story-progress-bar');
   
   progressBars.forEach((bar, index) => {
     const fill = bar.querySelector('.story-progress-fill');
-    if (index < currentInternalStoryIndex) {
-      fill.style.width = '100%'; // Completed stories
-    } else if (index === currentInternalStoryIndex) {
-      fill.style.width = '0%'; // Current story starts at 0
+    if (bar.dataset.storyId === currentInternalStoryId) {
       bar.classList.add('active');
-    } else {
-      fill.style.width = '0%'; // Future stories
+      fill.style.transition = `width ${STORY_DURATION}ms linear`;
+      fill.style.width = '100%';
+    } else if (index < currentInternalStoryIndex) {
       bar.classList.remove('active');
+      fill.style.transition = 'none';
+      fill.style.width = '100%';
+    } else {
+      bar.classList.remove('active');
+      fill.style.transition = 'none';
+      fill.style.width = '0';
     }
   });
+}
+
+// Start progress timer for auto-filling
+function startProgressTimer() {
+  stopProgressTimer(); // Clear any existing timer
+  
+  progressTimer = setTimeout(() => {
+    const currentStory = stories[currentUserIndex];
+    const nextInternalIndex = currentInternalStoryIndex + 1;
+    
+    if (nextInternalIndex < currentStory.internalStories.length) {
+      // Move to next internal story
+      currentInternalStoryIndex = nextInternalIndex;
+      renderInternalStory();
+      startProgressTimer();
+    } else if (currentUserIndex < stories.length - 1) {
+      // Move to next user
+      navigateUser(1);
+      startProgressTimer();
+    } else {
+      // Last story of last user, close popup
+      closeStoryPopup();
+    }
+  }, STORY_DURATION);
+}
+
+// Stop progress timer
+function stopProgressTimer() {
+  if (progressTimer) {
+    clearTimeout(progressTimer);
+    progressTimer = null;
+  }
 }
 
 // Apply rotation to cube
@@ -310,19 +317,14 @@ function applyCubeRotation(rotation, animate = true) {
 function navigateUser(direction) {
   const newIndex = currentUserIndex + direction;
   
-  if (newIndex < 0 || newIndex >= stories.length) {
-    if (newIndex >= stories.length && currentInternalStoryIndex >= stories[currentUserIndex].internalStories.length - 1) {
-      closeStoryPopup(); // Auto-close at the end
-    }
-    return;
-  }
+  if (newIndex < 0 || newIndex >= stories.length) return;
   
   currentUserIndex = newIndex;
   currentInternalStoryIndex = 0;
   currentRotation = currentUserIndex * -90;
   applyCubeRotation(currentRotation, true);
   renderInternalStory();
-  startProgress();
+  startProgressTimer();
 }
 
 // Navigate to previous/next internal story
@@ -337,7 +339,7 @@ function navigateInternalStory(direction) {
   
   currentInternalStoryIndex = newIndex;
   renderInternalStory();
-  startProgress();
+  startProgressTimer();
 }
 
 /* ----- pointer handlers ----- */
@@ -355,7 +357,7 @@ function onPointerDown(e) {
   lastX = startX;
   lastY = startY;
   isDragging = true;
-  stopProgress(); // Pause progress on interaction
+  stopProgressTimer(); // Pause timer on interaction
 }
 
 function onPointerMove(e) {
@@ -407,15 +409,18 @@ function onPointerUp(e) {
         navigateUser(1);
       } else {
         applyCubeRotation(currentRotation, true);
+        startProgressTimer();
       }
     } else {
       applyCubeRotation(currentRotation, true);
+      startProgressTimer();
     }
   } else {
     applyCubeRotation(currentRotation, true);
     if (deltaY > CLOSE_THRESHOLD) {
       closeStoryPopup();
+    } else {
+      startProgressTimer();
     }
   }
-  startProgress(); // Resume progress after interaction
 }
