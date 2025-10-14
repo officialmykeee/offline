@@ -120,7 +120,7 @@ html.opera-mini .story-reply-input {
   gap: 16px;
 }
 
-/* Story拱
+/* Story Viewer Container */
 .story-viewer-container {
   width: 100%;
   max-width: 500px;
@@ -203,7 +203,6 @@ html.opera-mini .story-reply-input {
 
 .story-progress-bar.active .story-progress-fill {
   width: 100%;
-  transition: width 5s linear; /* Matches STORY_DURATION */
 }
 
 .story-progress-fill {
