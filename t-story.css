@@ -340,11 +340,16 @@ html.opera-mini .story-reply-input {
 .story-reply-container {
   width: 100%;
   display: flex;
+  display: -webkit-flex;
+  align-items: center;
+  -webkit-align-items: center;
   justify-content: center;
+  -webkit-justify-content: center;
+  gap: 12px;
 }
 
 .story-reply-input {
-  width: 100%;
+  flex: 1;
   background-color: #2a2a2a;
   border-radius: 24px;
   -webkit-border-radius: 24px;
@@ -354,8 +359,6 @@ html.opera-mini .story-reply-input {
   display: -webkit-flex;
   align-items: center;
   -webkit-align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   cursor: text;
   transition: background-color 0.2s;
   -webkit-transition: background-color 0.2s;
@@ -371,17 +374,12 @@ html.opera-mini .story-reply-input {
   font-size: 15px;
   font-weight: 400;
   user-select: none;
-  flex: 0 1 auto;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 40px);
 }
 
 /* Heart Icon */
 .story-heart-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   color: #ffffff;
   cursor: pointer;
