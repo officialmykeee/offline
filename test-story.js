@@ -89,7 +89,7 @@ let progressTimer = null;
 const SWIPE_THRESHOLD = 80;
 const CLOSE_THRESHOLD = 120;
 const TAP_THRESHOLD = 10;
-const STORY_DURATION = 5000; // 5 seconds per story
+const STORY_DURATION = 5000; // 5 seconds per story, like WhatsApp
 
 // Create popup element and wire handlers
 export function createStoryPopup() {
@@ -253,6 +253,12 @@ function updateProgressBars() {
   progressBars.forEach((bar, index) => {
     const fill = bar.querySelector('.story-progress-fill');
     if (bar.dataset.storyId === currentInternalStoryId) {
+      // Reset to 0 before animating
+      fill.style.transition = 'none';
+      fill.style.width = '0';
+      // Force reflow to ensure reset applies
+      void fill.offsetWidth;
+      // Start animation
       bar.classList.add('active');
       fill.style.transition = `width ${STORY_DURATION}ms linear`;
       fill.style.width = '100%';
@@ -298,6 +304,14 @@ function stopProgressTimer() {
     clearTimeout(progressTimer);
     progressTimer = null;
   }
+  // Reset all progress bars to prevent stale animations
+  const progressBars = document.querySelectorAll('.story-progress-bar');
+  progressBars.forEach(bar => {
+    const fill = bar.querySelector('.story-progress-fill');
+    fill.style.transition = 'none';
+    fill.style.width = '0';
+    bar.classList.remove('active');
+  });
 }
 
 // Apply rotation to cube
