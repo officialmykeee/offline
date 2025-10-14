@@ -85,9 +85,11 @@ let isDragging = false;
 let currentUserIndex = 0;
 let currentInternalStoryIndex = 0;
 let currentRotation = 0;
+let progressTimer = null;
 const SWIPE_THRESHOLD = 80;
 const CLOSE_THRESHOLD = 120;
 const TAP_THRESHOLD = 10;
+const STORY_DURATION = 5000; // 5 seconds per story
 
 // Create popup element and wire handlers
 export function createStoryPopup() {
@@ -123,6 +125,7 @@ export function createStoryPopup() {
   popupEl.addEventListener("transitionend", (e) => {
     if (e.propertyName === "opacity" && !popupEl.classList.contains("active")) {
       document.body.style.overflow = "";
+      clearProgressTimer();
     }
   });
 }
@@ -140,6 +143,7 @@ export function openStoryPopup(story) {
   renderAllStories();
   applyCubeRotation(currentRotation, false);
   renderInternalStory();
+  startProgressTimer();
 
   popupEl.classList.add("active");
   document.body.style.overflow = "hidden";
@@ -149,6 +153,7 @@ export function closeStoryPopup() {
   if (!popupEl) return;
   popupEl.classList.remove("active");
   document.body.style.overflow = "";
+  clearProgressTimer();
 }
 
 // Render all users' stories on cube faces
@@ -185,6 +190,8 @@ function renderInternalStory() {
   if (internalStoriesContainer) {
     internalStoriesContainer.innerHTML = createStoryContent(currentStory, internalStory);
   }
+  resetProgressBars();
+  startProgressTimer();
 }
 
 // Create story HTML content
@@ -232,7 +239,7 @@ function createStoryContent(story, internalStory) {
 // Create progress bars for internal stories
 function createProgressBars(internalStories, currentInternalStoryId) {
   return internalStories.map((story, index) => `
-    <div class="story-progress-bar ${story.id === currentInternalStoryId ? 'active' : ''}">
+    <div class="story-progress-bar ${story.id === currentInternalStoryId ? 'active' : ''}" data-story-id="${story.id}">
       <div class="story-progress-fill"></div>
     </div>
   `).join('');
@@ -255,7 +262,12 @@ function applyCubeRotation(rotation, animate = true) {
 function navigateUser(direction) {
   const newIndex = currentUserIndex + direction;
   
-  if (newIndex < 0 || newIndex >= stories.length) return;
+  if (newIndex < 0 || newIndex >= stories.length) {
+    if (newIndex >= stories.length) {
+      closeStoryPopup(); // Close popup if at the last user
+    }
+    return;
+  }
   
   currentUserIndex = newIndex;
   currentInternalStoryIndex = 0;
@@ -278,6 +290,48 @@ function navigateInternalStory(direction) {
   renderInternalStory();
 }
 
+// Progress bar auto-fill and navigation
+function startProgressTimer() {
+  clearProgressTimer();
+  
+  const currentStory = stories[currentUserIndex];
+  const currentInternalStory = currentStory.internalStories[currentInternalStoryIndex];
+  const progressBar = document.querySelector(`.story-progress-bar[data-story-id="${currentInternalStory.id}"] .story-progress-fill`);
+  
+  if (progressBar) {
+    progressBar.style.transition = `width ${STORY_DURATION}ms linear`;
+    progressBar.style.width = '100%';
+    
+    progressTimer = setTimeout(() => {
+      const isLastInternalStory = currentInternalStoryIndex === currentStory.internalStories.length - 1;
+      const isLastUser = currentUserIndex === stories.length - 1;
+      
+      if (isLastInternalStory && isLastUser) {
+        closeStoryPopup();
+      } else if (isLastInternalStory) {
+        navigateUser(1);
+      } else {
+        navigateInternalStory(1);
+      }
+    }, STORY_DURATION);
+  }
+}
+
+function clearProgressTimer() {
+  if (progressTimer) {
+    clearTimeout(progressTimer);
+    progressTimer = null;
+  }
+}
+
+function resetProgressBars() {
+  const progressBars = document.querySelectorAll('.story-progress-bar .story-progress-fill');
+  progressBars.forEach(bar => {
+    bar.style.transition = 'none';
+    bar.style.width = '0';
+  });
+}
+
 /* ----- pointer handlers ----- */
 function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
@@ -293,6 +347,7 @@ function onPointerDown(e) {
   lastX = startX;
   lastY = startY;
   isDragging = true;
+  clearProgressTimer(); // Pause timer on interaction
 }
 
 function onPointerMove(e) {
@@ -354,4 +409,5 @@ function onPointerUp(e) {
       closeStoryPopup();
     }
   }
+  startProgressTimer(); // Resume timer after interaction
 }
