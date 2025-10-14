@@ -85,7 +85,7 @@ let isDragging = false;
 let currentUserIndex = 0;
 let currentInternalStoryIndex = 0;
 let currentRotation = 0;
-let progressTimer = null;
+let progressInterval = null;
 const SWIPE_THRESHOLD = 80;
 const CLOSE_THRESHOLD = 120;
 const TAP_THRESHOLD = 10;
@@ -125,7 +125,7 @@ export function createStoryPopup() {
   popupEl.addEventListener("transitionend", (e) => {
     if (e.propertyName === "opacity" && !popupEl.classList.contains("active")) {
       document.body.style.overflow = "";
-      clearProgressTimer();
+      stopProgress(); // Ensure progress stops when popup closes
     }
   });
 }
@@ -143,7 +143,7 @@ export function openStoryPopup(story) {
   renderAllStories();
   applyCubeRotation(currentRotation, false);
   renderInternalStory();
-  startProgressTimer();
+  startProgress();
 
   popupEl.classList.add("active");
   document.body.style.overflow = "hidden";
@@ -151,9 +151,9 @@ export function openStoryPopup(story) {
 
 export function closeStoryPopup() {
   if (!popupEl) return;
+  stopProgress();
   popupEl.classList.remove("active");
   document.body.style.overflow = "";
-  clearProgressTimer();
 }
 
 // Render all users' stories on cube faces
@@ -189,9 +189,8 @@ function renderInternalStory() {
   
   if (internalStoriesContainer) {
     internalStoriesContainer.innerHTML = createStoryContent(currentStory, internalStory);
+    updateProgressBars();
   }
-  resetProgressBars();
-  startProgressTimer();
 }
 
 // Create story HTML content
@@ -245,6 +244,55 @@ function createProgressBars(internalStories, currentInternalStoryId) {
   `).join('');
 }
 
+// Start auto-filling progress bar
+function startProgress() {
+  stopProgress(); // Clear any existing interval
+  updateProgressBars();
+  
+  const progressBar = document.querySelector(`.story-progress-bar.active .story-progress-fill`);
+  if (!progressBar) return;
+
+  let progress = 0;
+  const increment = 100 / (STORY_DURATION / 16); // Approx 60fps (16ms per frame)
+
+  progressInterval = setInterval(() => {
+    progress += increment;
+    progressBar.style.width = `${progress}%`;
+
+    if (progress >= 100) {
+      stopProgress();
+      navigateInternalStory(1); // Move to next story
+    }
+  }, 16);
+}
+
+// Stop progress bar animation
+function stopProgress() {
+  if (progressInterval) {
+    clearInterval(progressInterval);
+    progressInterval = null;
+  }
+}
+
+// Update progress bars' visual state
+function updateProgressBars() {
+  const currentStory = stories[currentUserIndex];
+  const progressBars = document.querySelectorAll(`.story-cube-face:nth-child(${currentUserIndex + 1}) .story-progress-bar`);
+  
+  progressBars.forEach((bar, index) => {
+    const fill = bar.querySelector('.story-progress-fill');
+    if (index < currentInternalStoryIndex) {
+      fill.style.width = '100%'; // Completed stories
+    } else if (index === currentInternalStoryIndex) {
+      fill.style.width = '0%'; // Current story starts at 0
+      bar.classList.add('active');
+    } else {
+      fill.style.width = '0%'; // Future stories
+      bar.classList.remove('active');
+    }
+  });
+}
+
 // Apply rotation to cube
 function applyCubeRotation(rotation, animate = true) {
   if (!cube) return;
@@ -263,8 +311,8 @@ function navigateUser(direction) {
   const newIndex = currentUserIndex + direction;
   
   if (newIndex < 0 || newIndex >= stories.length) {
-    if (newIndex >= stories.length) {
-      closeStoryPopup(); // Close popup if at the last user
+    if (newIndex >= stories.length && currentInternalStoryIndex >= stories[currentUserIndex].internalStories.length - 1) {
+      closeStoryPopup(); // Auto-close at the end
     }
     return;
   }
@@ -274,6 +322,7 @@ function navigateUser(direction) {
   currentRotation = currentUserIndex * -90;
   applyCubeRotation(currentRotation, true);
   renderInternalStory();
+  startProgress();
 }
 
 // Navigate to previous/next internal story
@@ -288,48 +337,7 @@ function navigateInternalStory(direction) {
   
   currentInternalStoryIndex = newIndex;
   renderInternalStory();
-}
-
-// Progress bar auto-fill and navigation
-function startProgressTimer() {
-  clearProgressTimer();
-  
-  const currentStory = stories[currentUserIndex];
-  const currentInternalStory = currentStory.internalStories[currentInternalStoryIndex];
-  const progressBar = document.querySelector(`.story-progress-bar[data-story-id="${currentInternalStory.id}"] .story-progress-fill`);
-  
-  if (progressBar) {
-    progressBar.style.transition = `width ${STORY_DURATION}ms linear`;
-    progressBar.style.width = '100%';
-    
-    progressTimer = setTimeout(() => {
-      const isLastInternalStory = currentInternalStoryIndex === currentStory.internalStories.length - 1;
-      const isLastUser = currentUserIndex === stories.length - 1;
-      
-      if (isLastInternalStory && isLastUser) {
-        closeStoryPopup();
-      } else if (isLastInternalStory) {
-        navigateUser(1);
-      } else {
-        navigateInternalStory(1);
-      }
-    }, STORY_DURATION);
-  }
-}
-
-function clearProgressTimer() {
-  if (progressTimer) {
-    clearTimeout(progressTimer);
-    progressTimer = null;
-  }
-}
-
-function resetProgressBars() {
-  const progressBars = document.querySelectorAll('.story-progress-bar .story-progress-fill');
-  progressBars.forEach(bar => {
-    bar.style.transition = 'none';
-    bar.style.width = '0';
-  });
+  startProgress();
 }
 
 /* ----- pointer handlers ----- */
@@ -347,7 +355,7 @@ function onPointerDown(e) {
   lastX = startX;
   lastY = startY;
   isDragging = true;
-  clearProgressTimer(); // Pause timer on interaction
+  stopProgress(); // Pause progress on interaction
 }
 
 function onPointerMove(e) {
@@ -409,5 +417,5 @@ function onPointerUp(e) {
       closeStoryPopup();
     }
   }
-  startProgressTimer(); // Resume timer after interaction
+  startProgress(); // Resume progress after interaction
 }
