@@ -13,9 +13,6 @@ function detectOperaMini() {
   
   if (isOperaMini) {
     document.documentElement.classList.add('opera-mini');
-    console.log('Opera Mini detected!');
-  } else {
-    console.log('Not Opera Mini. User Agent:', navigator.userAgent);
   }
 }
 
@@ -176,8 +173,11 @@ function renderAllStories() {
     const internalStoriesContainer = document.createElement("div");
     internalStoriesContainer.className = "internal-stories-container";
     
-    const currentStory = story.internalStories[currentInternalStoryIndex] || story.internalStories[0];
-    internalStoriesContainer.innerHTML = createStoryContent(story, currentStory);
+    // Only render the first internal story for non-active users
+    const internalStory = index === currentUserIndex 
+      ? story.internalStories[currentInternalStoryIndex] || story.internalStories[0]
+      : story.internalStories[0];
+    internalStoriesContainer.innerHTML = createStoryContent(story, internalStory);
     
     face.appendChild(internalStoriesContainer);
     cube.appendChild(face);
@@ -195,20 +195,7 @@ function renderInternalStory() {
     internalStoriesContainer.innerHTML = createStoryContent(currentStory, internalStory);
     updateProgressBars();
     extractDominantColor();
-    attachHeartClickHandler();
   }
-}
-
-// Attach heart icon click handler
-function attachHeartClickHandler() {
-  const heartIcons = document.querySelectorAll('.story-heart-icon');
-  heartIcons.forEach(heart => {
-    heart.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      heart.classList.toggle('liked');
-    });
-  });
 }
 
 // Extract dominant color from image if needed
@@ -270,7 +257,6 @@ function createStoryContent(story, internalStory) {
   let mediaContent = '';
   
   if (internalStory.mediaType === 'image' && internalStory.mediaUrl) {
-    // Image with blur background or color fill
     const fillStrategy = internalStory.fillStrategy || 'blur'; // blur, color, dominant
     
     if (fillStrategy === 'blur') {
@@ -289,17 +275,15 @@ function createStoryContent(story, internalStory) {
         </div>
       `;
     } else if (fillStrategy === 'dominant') {
-      // Will be calculated dynamically
       const fillColor = internalStory.dominantColor || '#000000';
       mediaContent = `
         <div class="story-media-container">
           <div class="story-media-background" style="background-color: ${fillColor};"></div>
-          <img src="${internalStory.mediaUrl}" alt="Story" class="story-media-image" data-extract-color="true" />
+        <img src="${internalStory.mediaUrl}" alt="Story" class="story-media-image" data-extract-color="true" />
         </div>
       `;
     }
   } else if (internalStory.mediaType === 'video' && internalStory.mediaUrl) {
-    // Video with color fill
     const fillColor = internalStory.fillColor || '#000000';
     mediaContent = `
       <div class="story-media-container">
@@ -308,7 +292,6 @@ function createStoryContent(story, internalStory) {
       </div>
     `;
   } else {
-    // Color/gradient only (no media)
     const backgroundClass = internalStory.background === "black" ? "story-background-black" : "story-background";
     mediaContent = `<div class="${backgroundClass}"></div>`;
   }
@@ -324,7 +307,7 @@ function createStoryContent(story, internalStory) {
          </svg>
        </div>`;
 
-  return `
+  const content = `
     <div class="story-content-wrapper">
       <div class="story-viewer-container">
         <div class="story-viewer">
@@ -350,6 +333,32 @@ function createStoryContent(story, internalStory) {
       </div>
     </div>
   `;
+
+  // Create a temporary container to attach event listeners
+  const tempContainer = document.createElement('div');
+  tempContainer.innerHTML = content;
+
+  if (!story.isYourStory) {
+    const heartIcon = tempContainer.querySelector('.story-heart-icon');
+    if (heartIcon) {
+      heartIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        heartIcon.classList.toggle('liked');
+      });
+    }
+
+    const replyInput = tempContainer.querySelector('.story-reply-input');
+    if (replyInput) {
+      replyInput.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // Optional: Add reply functionality here if needed
+      });
+    }
+  }
+
+  return tempContainer.innerHTML;
 }
 
 // Create progress bars for internal stories
@@ -370,13 +379,10 @@ function updateProgressBars() {
   progressBars.forEach((bar, index) => {
     const fill = bar.querySelector('.story-progress-fill');
     if (bar.dataset.storyId === currentInternalStoryId) {
-      // Reset to 0 before animating
       fill.style.transition = 'none';
       fill.style.width = '0';
       bar.classList.add('active');
-      // Force reflow to ensure reset applies
       void fill.offsetWidth;
-      // Use requestAnimationFrame to ensure animation triggers
       requestAnimationFrame(() => {
         fill.style.transition = `width ${STORY_DURATION}ms linear`;
         fill.style.width = '100%';
@@ -395,23 +401,20 @@ function updateProgressBars() {
 
 // Start progress timer for auto-filling
 function startProgressTimer() {
-  stopProgressTimer(); // Clear any existing timer
+  stopProgressTimer();
   
   progressTimer = setTimeout(() => {
     const currentStory = stories[currentUserIndex];
     const nextInternalIndex = currentInternalStoryIndex + 1;
     
     if (nextInternalIndex < currentStory.internalStories.length) {
-      // Move to next internal story
       currentInternalStoryIndex = nextInternalIndex;
       renderInternalStory();
       startProgressTimer();
     } else if (currentUserIndex < stories.length - 1) {
-      // Move to next user
       navigateUser(1);
       startProgressTimer();
     } else {
-      // Last story of last user, close popup
       closeStoryPopup();
     }
   }, STORY_DURATION);
@@ -423,7 +426,6 @@ function stopProgressTimer() {
     clearTimeout(progressTimer);
     progressTimer = null;
   }
-  // Reset all progress bars to prevent stale animations
   const progressBars = document.querySelectorAll('.story-progress-bar');
   progressBars.forEach(bar => {
     const fill = bar.querySelector('.story-progress-fill');
@@ -480,10 +482,9 @@ function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
   
-  // Explicitly ignore clicks on heart icon or reply input
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input');
+  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder');
   if (isInteractiveElement) {
-    e.stopPropagation(); // Prevent event from bubbling to navigation handlers
+    e.stopPropagation();
     e.preventDefault();
     return;
   }
@@ -498,12 +499,15 @@ function onPointerDown(e) {
   lastX = startX;
   lastY = startY;
   isDragging = true;
-  stopProgressTimer(); // Pause timer on interaction
+  stopProgressTimer();
 }
 
 function onPointerMove(e) {
   if (!isDragging || e.pointerId !== activePointerId) return;
   
+  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder');
+  if (isInteractiveElement) return;
+
   lastX = e.clientX;
   lastY = e.clientY;
 
@@ -522,10 +526,9 @@ function onPointerMove(e) {
 function onPointerUp(e) {
   if (!isDragging || e.pointerId !== activePointerId) return;
   
-  // Ignore if the event originated from heart or reply input
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input');
+  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder');
   if (isInteractiveElement) {
-    e.stopPropagation(); // Prevent bubbling
+    e.stopPropagation();
     e.preventDefault();
     isDragging = false;
     try {
