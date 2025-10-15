@@ -51,6 +51,9 @@ export const stories = [
   },
 ];
 
+// Track liked stories
+const likedStories = new Set();
+
 let popupEl = null;
 let scene = null;
 let cube = null;
@@ -85,7 +88,6 @@ export function createStoryPopup() {
   popupEl.appendChild(scene);
   document.body.appendChild(popupEl);
 
-  // Core Pointer Handlers for drag/swipe/navigation
   popupEl.addEventListener("pointerdown", onPointerDown);
   popupEl.addEventListener("pointermove", onPointerMove);
   popupEl.addEventListener("pointerup", onPointerUp);
@@ -104,29 +106,7 @@ export function createStoryPopup() {
       document.body.style.overflow = "";
     }
   });
-
-  // NEW: Event delegation for like button using pointerdown to prevent swipe interference
-  popupEl.addEventListener("pointerdown", handleLikeInteraction, true);
 }
-
-// NEW: Separate handler for like button pointerdown, replacing old click/touchend handlers
-function handleLikeInteraction(e) {
-  const likeBtn = e.target.closest(".story-like-btn");
-  if (likeBtn) {
-    // 1. Prevent the general onPointerDown/drag logic from starting
-    e.stopPropagation(); 
-    
-    // 2. Perform the like/unlike action immediately
-    likeBtn.classList.toggle("liked");
-    console.log('Like button clicked:', likeBtn.classList.contains('liked'));
-    
-    // 3. Prevent any default browser behavior (like generating a click)
-    e.preventDefault(); 
-    e.stopImmediatePropagation();
-  }
-}
-
-// REMOVED: The old 'handleLikeClick' function is no longer needed
 
 // Open story at specific index
 export function openStoryPopup(story) {
@@ -159,7 +139,6 @@ function renderAllStories() {
   stories.forEach((story, index) => {
     const face = document.createElement("div");
     face.className = "story-cube-face";
-    face.dataset.storyIndex = index;
     
     // Position each face around the cube
     const rotationY = index * 90;
@@ -167,6 +146,26 @@ function renderAllStories() {
     
     face.innerHTML = createStoryContent(story);
     cube.appendChild(face);
+
+    // Add click handler for heart icon if not your story
+    if (!story.isYourStory) {
+      const heartContainer = face.querySelector('.story-heart-container');
+      if (heartContainer) {
+        heartContainer.addEventListener('click', () => {
+          if (likedStories.has(story.id)) {
+            likedStories.delete(story.id);
+            heartContainer.classList.remove('active');
+          } else {
+            likedStories.add(story.id);
+            heartContainer.classList.add('active');
+          }
+        });
+        // Set initial state based on likedStories
+        if (likedStories.has(story.id)) {
+          heartContainer.classList.add('active');
+        }
+      }
+    }
   });
 }
 
@@ -181,11 +180,15 @@ function createStoryContent(story) {
          <div class="story-reply-input">
            <span class="story-reply-placeholder">Reply privately...</span>
          </div>
-         <button class="story-like-btn" type="button" aria-label="Like story">
+         <div class="story-heart-container">
            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-             <path d="M15.7 4C18.87 4 21 6.98 21 9.76C21 15.39 12.16 20 12 20C11.84 20 3 15.39 3 9.76C3 6.98 5.13 4 8.3 4C10.12 4 11.31 4.91 12 5.71C12.69 4.91 13.88 4 15.7 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+             <g id="SVGRepo_iconCarrier">
+               <path d="M15.7 4C18.87 4 21 6.98 21 9.76C21 15.39 12.16 20 12 20C11.84 20 3 15.39 3 9.76C3 6.98 5.13 4 8.3 4C10.12 4 11.31 4.91 12 5.71C12.69 4.91 13.88 4 15.7 4Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+             </g>
            </svg>
-         </button>
+         </div>
        </div>`;
 
   return `
@@ -246,13 +249,6 @@ function navigateStory(direction) {
 function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
-  
-  // NOTE: The check below is now less critical for the like button 
-  // because handleLikeInteraction() handles it on pointerdown, 
-  // but it's kept to prevent dragging if the reply input is tapped.
-  if (e.target.closest(".story-like-btn") || e.target.closest(".story-reply-input")) {
-    return;
-  }
 
   activePointerId = e.pointerId;
   try {
@@ -322,4 +318,3 @@ function onPointerUp(e) {
     }
   }
 }
-
