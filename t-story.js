@@ -192,8 +192,6 @@ function renderInternalStory() {
   const internalStoriesContainer = face.querySelector(".internal-stories-container");
   
   if (internalStoriesContainer) {
-    // Clear existing content to prevent duplicate event listeners
-    internalStoriesContainer.innerHTML = '';
     internalStoriesContainer.innerHTML = createStoryContent(currentStory, internalStory);
     updateProgressBars();
     extractDominantColor();
@@ -205,18 +203,12 @@ function renderInternalStory() {
 function attachHeartClickHandler() {
   const heartIcons = document.querySelectorAll('.story-heart-icon');
   heartIcons.forEach(heart => {
-    // Remove existing click listeners to prevent duplicates
-    heart.removeEventListener('click', handleHeartClick);
-    heart.addEventListener('click', handleHeartClick);
+    heart.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      heart.classList.toggle('liked');
+    });
   });
-}
-
-function handleHeartClick(e) {
-  e.stopPropagation();
-  e.preventDefault();
-  const heart = e.currentTarget;
-  heart.classList.toggle('liked');
-  console.log('Heart clicked:', heart.classList.contains('liked') ? 'Liked' : 'Unliked');
 }
 
 // Extract dominant color from image if needed
@@ -485,31 +477,13 @@ function navigateInternalStory(direction) {
 
 /* ----- pointer handlers ----- */
 function onPointerDown(e) {
-  if (!popupEl || !popupEl.classList.contains("active")) {
-    console.log('PointerDown ignored: Popup not active');
-    return;
-  }
-  if (e.pointerType === "mouse" && e.button !== 0) {
-    console.log('PointerDown ignored: Non-primary mouse button');
-    return;
-  }
-  
-  // Check for interactive elements first
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
-  if (isInteractiveElement) {
-    console.log('PointerDown on interactive element:', e.target);
-    e.stopPropagation();
-    e.preventDefault();
-    return;
-  }
+  if (!popupEl || !popupEl.classList.contains("active")) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
 
-  console.log('PointerDown on navigation area:', e.target);
   activePointerId = e.pointerId;
   try {
     popupEl.setPointerCapture(activePointerId);
-  } catch (err) {
-    console.error('Pointer capture failed:', err);
-  }
+  } catch {}
 
   startX = e.clientX;
   startY = e.clientY;
@@ -520,18 +494,8 @@ function onPointerDown(e) {
 }
 
 function onPointerMove(e) {
-  if (!isDragging || e.pointerId !== activePointerId) {
-    console.log('PointerMove ignored: Not dragging or wrong pointer ID');
-    return;
-  }
+  if (!isDragging || e.pointerId !== activePointerId) return;
   
-  // Double-check for interactive elements
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
-  if (isInteractiveElement) {
-    console.log('PointerMove on interactive element:', e.target);
-    return;
-  }
-
   lastX = e.clientX;
   lastY = e.clientY;
 
@@ -548,25 +512,7 @@ function onPointerMove(e) {
 }
 
 function onPointerUp(e) {
-  if (!isDragging || e.pointerId !== activePointerId) {
-    console.log('PointerUp ignored: Not dragging or wrong pointer ID');
-    return;
-  }
-  
-  // Check for interactive elements
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
-  if (isInteractiveElement) {
-    console.log('PointerUp on interactive element:', e.target);
-    e.stopPropagation();
-    e.preventDefault();
-    isDragging = false;
-    try {
-      popupEl.releasePointerCapture(activePointerId);
-    } catch {}
-    return;
-  }
-
-  console.log('PointerUp on navigation area:', e.target);
+  if (!isDragging || e.pointerId !== activePointerId) return;
   isDragging = false;
   
   try {
@@ -582,10 +528,8 @@ function onPointerUp(e) {
     const halfWidth = window.innerWidth / 2;
     if (startX > halfWidth) {
       navigateInternalStory(1);
-      console.log('Tap navigation: Next internal story');
     } else {
       navigateInternalStory(-1);
-      console.log('Tap navigation: Previous internal story');
     }
     return;
   }
@@ -594,28 +538,22 @@ function onPointerUp(e) {
     if (absDeltaX > SWIPE_THRESHOLD) {
       if (deltaX > 0 && currentUserIndex > 0) {
         navigateUser(-1);
-        console.log('Swipe navigation: Previous user');
       } else if (deltaX < 0 && currentUserIndex < stories.length - 1) {
         navigateUser(1);
-        console.log('Swipe navigation: Next user');
       } else {
         applyCubeRotation(currentRotation, true);
         startProgressTimer();
-        console.log('Swipe ignored: Out of bounds');
       }
     } else {
       applyCubeRotation(currentRotation, true);
       startProgressTimer();
-      console.log('Swipe ignored: Below threshold');
     }
   } else {
     applyCubeRotation(currentRotation, true);
     if (deltaY > CLOSE_THRESHOLD) {
       closeStoryPopup();
-      console.log('Swipe down: Close popup');
     } else {
       startProgressTimer();
-      console.log('Swipe ignored: Below close threshold');
     }
   }
 }
