@@ -1,4 +1,4 @@
-// story.js
+    // story.js
 // export stories data + functions to create/open/close the popup
 
 // Detect Opera Mini and add class to html element
@@ -529,21 +529,20 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // Check if tap was on the story viewer container
-  const target = document.elementFromPoint(startX, startY);
-  const storyViewerContainer = target ? target.closest('.story-viewer-container') : null;
-  
-  // Handle tap navigation (only for taps, not swipes)
   if (absDeltaX < TAP_THRESHOLD && absDeltaY < TAP_THRESHOLD) {
-    // If tap is inside story viewer container
+    // Check if tap was on the story viewer container only
+    const target = document.elementFromPoint(startX, startY);
+    
+    // Check if tap started on heart or reply input - if so, ignore navigation
+    if (target && (target.closest('.story-heart-icon') || target.closest('.story-reply-input') || target.closest('.story-reply-container'))) {
+      startProgressTimer();
+      return;
+    }
+    
+    const storyViewerContainer = target ? target.closest('.story-viewer-container') : null;
+    
+    // Only navigate internal stories if tap was inside story viewer container
     if (storyViewerContainer) {
-      // Check if tap started on heart or reply input - if so, ignore navigation
-      if (target && (target.closest('.story-heart-icon') || target.closest('.story-reply-input') || target.closest('.story-reply-container'))) {
-        startProgressTimer();
-        return;
-      }
-      
-      // Navigate internal stories based on tap zone
       const screenWidth = window.innerWidth;
       const leftZone = screenWidth * 0.25;
       const rightZone = screenWidth * 0.75;
@@ -556,36 +555,10 @@ function onPointerUp(e) {
         startProgressTimer();
       }
     } else {
-      // Tap outside story container, just resume timer
       startProgressTimer();
     }
     return;
   }
-
-  // Handle swipe navigation (for all areas)
-  if (absDeltaX > absDeltaY) {
-    if (absDeltaX > SWIPE_THRESHOLD) {
-      if (deltaX > 0 && currentUserIndex > 0) {
-        navigateUser(-1);
-      } else if (deltaX < 0 && currentUserIndex < stories.length - 1) {
-        navigateUser(1);
-      } else {
-        applyCubeRotation(currentRotation, true);
-        startProgressTimer();
-      }
-    } else {
-      applyCubeRotation(currentRotation, true);
-      startProgressTimer();
-    }
-  } else {
-    applyCubeRotation(currentRotation, true);
-    if (deltaY > CLOSE_THRESHOLD) {
-      closeStoryPopup();
-    } else {
-      startProgressTimer();
-    }
-  }
-}
 
   if (absDeltaX > absDeltaY) {
     if (absDeltaX > SWIPE_THRESHOLD) {
