@@ -529,9 +529,41 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // Check if tap started on heart or reply input - if so, ignore navigation
+  // Check if tap was on the story viewer container only
   const target = document.elementFromPoint(startX, startY);
+  const storyViewerContainer = target ? target.closest('.story-viewer-container') : null;
+  
+  // If tap is outside story viewer container, don't navigate internal stories
+  if (!storyViewerContainer) {
+    // Still handle horizontal swipes for user navigation
+    if (absDeltaX > absDeltaY) {
+      if (absDeltaX > SWIPE_THRESHOLD) {
+        if (deltaX > 0 && currentUserIndex > 0) {
+          navigateUser(-1);
+        } else if (deltaX < 0 && currentUserIndex < stories.length - 1) {
+          navigateUser(1);
+        } else {
+          applyCubeRotation(currentRotation, true);
+          startProgressTimer();
+        }
+      } else {
+        applyCubeRotation(currentRotation, true);
+        startProgressTimer();
+      }
+    } else {
+      applyCubeRotation(currentRotation, true);
+      if (deltaY > CLOSE_THRESHOLD) {
+        closeStoryPopup();
+      } else {
+        startProgressTimer();
+      }
+    }
+    return;
+  }
+
+  // Check if tap started on heart or reply input - if so, ignore navigation
   if (target && (target.closest('.story-heart-icon') || target.closest('.story-reply-input') || target.closest('.story-reply-container'))) {
+    startProgressTimer();
     return;
   }
 
