@@ -363,8 +363,8 @@ html.opera-mini .story-reply-input {
   transition: background-color 0.2s;
   -webkit-transition: background-color 0.2s;
   -o-transition: background-color 0.2s;
-  pointer-events: auto; /* Ensure it receives clicks */
-  user-select: none; /* Prevent text selection */
+  pointer-events: auto;
+  user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -379,6 +379,7 @@ html.opera-mini .story-reply-input {
   font-size: 15px;
   font-weight: 400;
   user-select: none;
+  pointer-events: auto;
 }
 
 /* Heart Icon */
@@ -410,8 +411,8 @@ html.opera-mini .story-reply-input {
   color: #ff3b8e;
   fill: #ff3b8e;
   stroke: #ff3b8e;
-  transform: scale(1.2); /* Slightly larger when liked */
-  animation: heartPulse 0.3s ease-in-out; /* Pulse animation */
+  transform: scale(1.2);
+  animation: heartPulse 0.3s ease-in-out;
 }
 
 @keyframes heartPulse {
