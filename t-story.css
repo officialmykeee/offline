@@ -89,8 +89,8 @@ html.opera-mini .story-bottom-area {
 }
 
 html.opera-mini .story-reply-input {
-    top: -5px !important;
-    position: relative !important;
+  top: -5px !important;
+  position: relative !important;
 }
 
 /* Cube Faces */
@@ -325,9 +325,7 @@ html.opera-mini .story-reply-input {
   display: -webkit-flex;
   justify-content: center;
   -webkit-justify-content: center;
-  pointer-events: auto;
-  z-index: 100;
-  position: relative;
+  z-index: 1000; /* Ensure bottom area is above other elements */
 }
 
 /* No views yet text */
@@ -349,7 +347,7 @@ html.opera-mini .story-reply-input {
   justify-content: center;
   -webkit-justify-content: center;
   gap: 12px;
-  pointer-events: auto;
+  z-index: 1000; /* Ensure container is clickable */
 }
 
 .story-reply-input {
@@ -368,6 +366,11 @@ html.opera-mini .story-reply-input {
   -webkit-transition: background-color 0.2s;
   -o-transition: background-color 0.2s;
   pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  z-index: 1001; /* Above other elements */
 }
 
 .story-reply-input:hover {
@@ -379,7 +382,8 @@ html.opera-mini .story-reply-input {
   font-size: 15px;
   font-weight: 400;
   user-select: none;
-  pointer-events: none;
+  pointer-events: auto;
+  z-index: 1001;
 }
 
 /* Heart Icon */
@@ -393,8 +397,12 @@ html.opera-mini .story-reply-input {
   -webkit-transition: all 0.3s ease;
   -o-transition: all 0.3s ease;
   pointer-events: auto;
-  z-index: 1000;
+  z-index: 1001;
   position: relative;
+}
+
+.story-heart-icon * {
+  pointer-events: auto;
 }
 
 .story-heart-icon:hover {
@@ -409,9 +417,14 @@ html.opera-mini .story-reply-input {
 
 .story-heart-icon.liked {
   color: #ff3b8e;
-}
-
-.story-heart-icon.liked path {
   fill: #ff3b8e;
   stroke: #ff3b8e;
+  transform: scale(1.2);
+  animation: heartPulse 0.3s ease-in-out;
+}
+
+@keyframes heartPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1.2); }
 }
