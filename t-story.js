@@ -205,8 +205,8 @@ function renderInternalStory() {
 function attachHeartClickHandler() {
   const heartIcons = document.querySelectorAll('.story-heart-icon');
   heartIcons.forEach(heart => {
-    heart.removeEventListener('click', heartClickHandler);
-    heart.addEventListener('click', heartClickHandler);
+    heart.removeEventListener('pointerdown', heartClickHandler);
+    heart.addEventListener('pointerdown', heartClickHandler);
   });
 }
 
@@ -222,8 +222,8 @@ function heartClickHandler(e) {
 function attachReplyInputHandler() {
   const replyInputs = document.querySelectorAll('.story-reply-input');
   replyInputs.forEach(input => {
-    input.removeEventListener('click', replyInputClickHandler);
-    input.addEventListener('click', replyInputClickHandler);
+    input.removeEventListener('pointerdown', replyInputClickHandler);
+    input.addEventListener('pointerdown', replyInputClickHandler);
   });
 }
 
@@ -447,6 +447,7 @@ function onPointerDown(e) {
   const isInteractiveElement = e.target.closest('.story-heart-icon, .story-heart-icon *, .story-reply-input, .story-reply-placeholder');
   if (isInteractiveElement) {
     interactivePointerTarget = isInteractiveElement;
+    console.log('Interactive element tapped:', e.target.className, 'at', e.clientX, e.clientY);
     return;
   }
 
@@ -458,6 +459,7 @@ function onPointerDown(e) {
   lastY = startY;
   isDragging = true;
   stopProgressTimer();
+  console.log('Navigation tap started at:', startX, startY);
 }
 
 function onPointerMove(e) {
@@ -476,6 +478,7 @@ function onPointerMove(e) {
 
 function onPointerUp(e) {
   if (interactivePointerTarget) {
+    console.log('Interactive element tap ended:', interactivePointerTarget.className);
     interactivePointerTarget = null;
     return;
   }
@@ -488,29 +491,59 @@ function onPointerUp(e) {
   const absX = Math.abs(deltaX);
   const absY = Math.abs(deltaY);
 
+  const bottomArea = document.querySelector('.story-bottom-area');
+  const bottomAreaRect = bottomArea ? bottomArea.getBoundingClientRect() : null;
+
   if (absX < TAP_THRESHOLD && absY < TAP_THRESHOLD) {
     const screenWidth = window.innerWidth;
-    const leftZone = screenWidth * 0.3; // Left 30% of screen
-    const rightZone = screenWidth * 0.7; // Right 30% of screen
+    const screenHeight = window.innerHeight;
+    // Exclude bottom area (where reply input and heart are) from navigation taps
+    if (bottomAreaRect && startY > bottomAreaRect.top) {
+      console.log('Tap in bottom area ignored:', startX, startY);
+      startProgressTimer();
+      return;
+    }
+    // Navigation zones: left 25% and right 25%, excluding bottom area
+    const leftZone = screenWidth * 0.25;
+    const rightZone = screenWidth * 0.75;
     if (startX < leftZone) {
-      navigateInternalStory(-1); // Previous internal story
+      console.log('Navigating to previous internal story');
+      navigateInternalStory(-1);
     } else if (startX > rightZone) {
-      navigateInternalStory(1); // Next internal story
+      console.log('Navigating to next internal story');
+      navigateInternalStory(1);
     } else {
-      startProgressTimer(); // Resume progress if tap is in center
+      console.log('Center tap, resuming progress');
+      startProgressTimer();
     }
     return;
   }
 
   if (absX > absY) {
     if (absX > SWIPE_THRESHOLD) {
-      if (deltaX > 0 && currentUserIndex > 0) navigateUser(-1);
-      else if (deltaX < 0 && currentUserIndex < stories.length - 1) navigateUser(1);
-      else applyCubeRotation(currentRotation, true);
-    } else applyCubeRotation(currentRotation, true);
+      if (deltaX > 0 && currentUserIndex > 0) {
+        console.log('Swiping to previous user');
+        navigateUser(-1);
+      } else if (deltaX < 0 && currentUserIndex < stories.length - 1) {
+        console.log('Swiping to next user');
+        navigateUser(1);
+      } else {
+        console.log('Swipe not enough, resetting cube');
+        applyCubeRotation(currentRotation, true);
+      }
+    } else {
+      console.log('Swipe too small, resetting cube');
+      applyCubeRotation(currentRotation, true);
+    }
   } else {
+    console.log('Vertical movement detected, checking for close');
     applyCubeRotation(currentRotation, true);
-    if (deltaY > CLOSE_THRESHOLD) closeStoryPopup();
-    else startProgressTimer();
+    if (deltaY > CLOSE_THRESHOLD) {
+      console.log('Closing popup due to downward swipe');
+      closeStoryPopup();
+    } else {
+      console.log('Resuming progress after vertical movement');
+      startProgressTimer();
+    }
   }
 }
