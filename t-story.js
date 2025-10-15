@@ -113,12 +113,13 @@ export function createStoryPopup() {
   popupEl.appendChild(scene);
   document.body.appendChild(popupEl);
 
-  popupEl.addEventListener("pointerdown", onPointerDown);
-  popupEl.addEventListener("pointermove", onPointerMove);
-  popupEl.addEventListener("pointerup", onPointerUp);
-  popupEl.addEventListener("pointercancel", onPointerUp);
+  // Attach pointer handlers to scene (not popupEl) to avoid bottom area
+  scene.addEventListener("pointerdown", onPointerDown);
+  scene.addEventListener("pointermove", onPointerMove);
+  scene.addEventListener("pointerup", onPointerUp);
+  scene.addEventListener("pointercancel", onPointerUp);
 
-  popupEl.addEventListener(
+  scene.addEventListener(
     "touchmove",
     (e) => {
       if (isDragging) e.preventDefault();
@@ -196,30 +197,6 @@ function renderInternalStory() {
     updateProgressBars();
     extractDominantColor();
     attachHeartClickHandler();
-    attachBottomAreaHandlers();
-  }
-}
-
-// Attach bottom area handlers to prevent propagation
-function attachBottomAreaHandlers() {
-  const bottomArea = document.querySelector('.story-bottom-area');
-  if (bottomArea) {
-    // Stop all pointer events from bubbling up
-    bottomArea.addEventListener('pointerdown', (e) => {
-      e.stopPropagation();
-    }, true);
-    
-    bottomArea.addEventListener('pointerup', (e) => {
-      e.stopPropagation();
-    }, true);
-    
-    bottomArea.addEventListener('pointermove', (e) => {
-      e.stopPropagation();
-    }, true);
-    
-    bottomArea.addEventListener('click', (e) => {
-      e.stopPropagation();
-    }, true);
   }
 }
 
@@ -228,8 +205,6 @@ function attachHeartClickHandler() {
   const heartIcons = document.querySelectorAll('.story-heart-icon');
   heartIcons.forEach(heart => {
     heart.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
       heart.classList.toggle('liked');
     });
   });
@@ -506,7 +481,7 @@ function onPointerDown(e) {
 
   activePointerId = e.pointerId;
   try {
-    popupEl.setPointerCapture(activePointerId);
+    scene.setPointerCapture(activePointerId);
   } catch {}
 
   startX = e.clientX;
@@ -540,7 +515,7 @@ function onPointerUp(e) {
   isDragging = false;
   
   try {
-    popupEl.releasePointerCapture(activePointerId);
+    scene.releasePointerCapture(activePointerId);
   } catch {}
 
   const deltaX = lastX - startX;
