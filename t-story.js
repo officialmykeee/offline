@@ -121,7 +121,8 @@ export function createStoryPopup() {
   popupEl.addEventListener(
     "touchmove",
     (e) => {
-      if (isDragging) e.preventDefault();
+      // Prevent body scrolling/refresh gestures ONLY when actively dragging the cube
+      if (isDragging) e.preventDefault(); 
     },
     { passive: false }
   );
@@ -212,7 +213,7 @@ function attachHeartClickHandler() {
 // Separate function for heart click handling
 function heartClickHandler(e) {
   e.stopImmediatePropagation();
-  e.preventDefault();
+  // e.preventDefault(); // Do not prevent default here, let the click happen naturally
   const heart = e.currentTarget;
   heart.classList.toggle('liked');
   console.log('Heart clicked:', heart.classList.contains('liked') ? 'Liked' : 'Unliked');
@@ -482,7 +483,7 @@ function navigateInternalStory(direction) {
   startProgressTimer();
 }
 
-/* ----- pointer handlers ----- */
+/* ----- pointer handlers (Final Fix) ----- */
 
 // Function to check if the pointer is over an interactive element
 function isPointerOverInteractive(e) {
@@ -491,28 +492,31 @@ function isPointerOverInteractive(e) {
 
 function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) {
-    console.log('PointerDown ignored: Popup not active');
     return;
   }
   if (e.pointerType === "mouse" && e.button !== 0) {
-    console.log('PointerDown ignored: Non-primary mouse button');
     return;
   }
   
   if (isPointerOverInteractive(e)) {
-    console.log('PointerDown on interactive element:', e.target);
-    // Do not capture pointer if starting on an interactive element, 
-    // allow default click/form behavior.
+    console.log('PointerDown on interactive element: Allowing default action.');
+    // Do not set capture. Let the browser handle the click/focus.
     return;
   }
 
-  console.log('PointerDown on navigation area:', e.target);
+  // If we are here, it is a drag/tap for story navigation/closing
+  console.log('PointerDown on navigation area: Setting capture and pausing timer.');
   activePointerId = e.pointerId;
   try {
     popupEl.setPointerCapture(activePointerId);
   } catch (err) {
     console.error('Pointer capture failed:', err);
   }
+  
+  // *** CRITICAL ADDITION ***
+  // Prevent browser default touch/pointer behavior (like scrolling/zooming) 
+  // on the story navigation area itself, which helps ensure our custom logic takes over.
+  e.preventDefault(); 
 
   startX = e.clientX;
   startY = e.clientY;
@@ -524,12 +528,8 @@ function onPointerDown(e) {
 
 function onPointerMove(e) {
   if (!isDragging || e.pointerId !== activePointerId) {
-    console.log('PointerMove ignored: Not dragging or wrong pointer ID');
     return;
   }
-  
-  // Note: We don't check for interactive elements here, as we only care where the drag started (onPointerDown)
-  // and where it ended (onPointerUp/Cancel).
 
   lastX = e.clientX;
   lastY = e.clientY;
@@ -549,26 +549,22 @@ function onPointerMove(e) {
 
 function onPointerUp(e) {
   if (!isDragging || e.pointerId !== activePointerId) {
-    // If the drag didn't start on an area we care about, we just release capture if it was set.
-    // This handles cases where pointerdown was ignored for an interactive element.
     try {
       popupEl.releasePointerCapture(e.pointerId);
     } catch {}
-    console.log('PointerUp ignored: Not dragging or wrong pointer ID (or started on interactive element)');
     return;
   }
   
-  // *** CRITICAL FIX: CHECK IF THE POINTER RELEASED OVER AN INTERACTIVE ELEMENT ***
-  // If the pointer down was on a non-interactive area but dragged/tapped onto an interactive element,
-  // we must prevent navigation and immediately release the capture to re-enable default click/form behaviour.
+  // *** CRITICAL CHECK ***
+  // If pointerup occurs over an interactive element, stop the navigation logic immediately.
   if (isPointerOverInteractive(e)) {
-    console.log('PointerUp on interactive element: navigation prevented.');
+    console.log('PointerUp released on interactive element: navigation prevented.');
     isDragging = false;
     try {
       popupEl.releasePointerCapture(activePointerId);
     } catch {}
-    startProgressTimer(); // Resume timer if we prevented a potential tap/drag navigation
-    return;
+    startProgressTimer(); // Resume timer
+    return; 
   }
 
   console.log('PointerUp on navigation area:', e.target);
@@ -602,9 +598,9 @@ function onPointerUp(e) {
         console.log('Tap navigation: Previous internal story (inside viewer)');
       }
     } else {
-      // Tap outside the story viewer (e.g., on the top or bottom black background)
+      // Tap outside the story viewer 
       console.log('Tap ignored: Outside story viewer area');
-      startProgressTimer(); // Resume timer if it was a minor movement/tap outside the viewer
+      startProgressTimer(); // Resume timer
     }
     return;
   }
