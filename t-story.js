@@ -198,13 +198,16 @@ function renderInternalStory() {
     extractDominantColor();
     attachHeartClickHandler();
     attachReplyInputHandler();
+    console.log(`Rendered internal story: ${internalStory.id} for user: ${currentStory.username}`);
   }
 }
 
 // Attach heart icon click handler
 function attachHeartClickHandler() {
   const heartIcons = document.querySelectorAll('.story-heart-icon');
+  console.log(`Attaching heart handlers to ${heartIcons.length} icons`);
   heartIcons.forEach(heart => {
+    // Remove any existing listeners to prevent duplicates
     heart.removeEventListener('pointerdown', heartClickHandler);
     heart.addEventListener('pointerdown', heartClickHandler);
   });
@@ -214,13 +217,15 @@ function heartClickHandler(e) {
   e.stopImmediatePropagation();
   e.preventDefault();
   const heart = e.currentTarget;
+  const storyId = heart.closest('.story-reply-container').querySelector('.story-reply-input').dataset.storyId;
   heart.classList.toggle('liked');
-  console.log('Heart clicked:', heart.classList.contains('liked') ? 'Liked' : 'Unliked');
+  console.log(`Heart clicked for story ${storyId}: ${heart.classList.contains('liked') ? 'Liked' : 'Unliked'}`);
 }
 
 // Attach reply input click handler
 function attachReplyInputHandler() {
   const replyInputs = document.querySelectorAll('.story-reply-input');
+  console.log(`Attaching reply input handlers to ${replyInputs.length} inputs`);
   replyInputs.forEach(input => {
     input.removeEventListener('pointerdown', replyInputClickHandler);
     input.addEventListener('pointerdown', replyInputClickHandler);
