@@ -57,6 +57,30 @@ body {
   fill: #3b82f6;
 }
 
+.compose-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #749cbf;
+  color: white;
+  border: none;
+  font-size: 24px;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.compose-button:hover {
+  background-color: #5d7fa3;
+}
+
+.compose-button:active {
+  background-color: #4a6682;
+}
+
 /* Stories */
 .stories-container {
   background-color: white;
@@ -281,39 +305,4 @@ body {
 .chat-message.unread {
   color: black;
   font-weight: 500;
-}
-
-/* Floating Action Button */
-.fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 56px;
-  height: 56px;
-  background-color: #749cbf;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(116, 156, 191, 0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
-  z-index: 30;
-}
-
-.fab:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(116, 156, 191, 0.5);
-}
-
-.fab:active {
-  transform: scale(0.95);
-}
-
-.fab-icon {
-  color: white;
-  font-size: 32px;
-  font-weight: 300;
-  line-height: 1;
 }
