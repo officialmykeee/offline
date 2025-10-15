@@ -17,6 +17,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative; /* Added to support absolute positioning of FAB */
 }
 
 /* Header */
@@ -55,30 +56,6 @@ body {
 .messages-icon {
   color: #3b82f6;
   fill: #3b82f6;
-}
-
-.compose-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #749cbf;
-  color: white;
-  border: none;
-  font-size: 24px;
-  font-weight: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.compose-button:hover {
-  background-color: #5d7fa3;
-}
-
-.compose-button:active {
-  background-color: #4a6682;
 }
 
 /* Stories */
@@ -248,7 +225,7 @@ body {
 .chat-header {
   display: flex;
   align-items: center;
-  justify-content: between;
+  justify-content: space-between; /* Fixed typo: 'between' to 'space-between' */
   margin-bottom: 2px;
 }
 
@@ -305,4 +282,30 @@ body {
 .chat-message.unread {
   color: black;
   font-weight: 500;
+}
+
+/* Floating Action Button */
+.fab {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  background-color: #749cbf;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  background-color: #5b7ea3;
 }
