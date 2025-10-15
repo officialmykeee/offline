@@ -38,7 +38,7 @@ export const stories = [
       {
         id: "your-story-1",
         background: "gradient",
-        mediaType: "color" // color, image, video
+        mediaType: "color"
       }
     ]
   },
@@ -86,14 +86,15 @@ let startY = 0;
 let lastX = 0;
 let lastY = 0;
 let isDragging = false;
+let interactivePointerTarget = null; // ✅ added variable to track interactive touches
 let currentUserIndex = 0;
 let currentInternalStoryIndex = 0;
 let currentRotation = 0;
 let progressTimer = null;
 const SWIPE_THRESHOLD = 80;
 const CLOSE_THRESHOLD = 120;
-const TAP_THRESHOLD = 15; // Increased slightly to reduce false positives
-const STORY_DURATION = 5000; // 5 seconds per story, like WhatsApp
+const TAP_THRESHOLD = 15;
+const STORY_DURATION = 5000;
 
 // Create popup element and wire handlers
 export function createStoryPopup() {
@@ -121,8 +122,7 @@ export function createStoryPopup() {
   popupEl.addEventListener(
     "touchmove",
     (e) => {
-      // Prevent body scrolling/refresh gestures ONLY when actively dragging the cube
-      if (isDragging) e.preventDefault(); 
+      if (isDragging) e.preventDefault();
     },
     { passive: false }
   );
@@ -177,7 +177,7 @@ function renderAllStories() {
     const internalStoriesContainer = document.createElement("div");
     internalStoriesContainer.className = "internal-stories-container";
     
-    const currentStory = story.internalStories[0]; // Initial render uses first story
+    const currentStory = story.internalStories[0];
     internalStoriesContainer.innerHTML = createStoryContent(story, currentStory);
     
     face.appendChild(internalStoriesContainer);
@@ -204,16 +204,14 @@ function renderInternalStory() {
 function attachHeartClickHandler() {
   const heartIcons = document.querySelectorAll('.story-heart-icon');
   heartIcons.forEach(heart => {
-    // Remove existing listeners to prevent duplicates
     heart.removeEventListener('click', heartClickHandler);
     heart.addEventListener('click', heartClickHandler);
   });
 }
 
-// Separate function for heart click handling
 function heartClickHandler(e) {
   e.stopImmediatePropagation();
-  // e.preventDefault(); // Do not prevent default here, let the click happen naturally
+  e.preventDefault();
   const heart = e.currentTarget;
   heart.classList.toggle('liked');
   console.log('Heart clicked:', heart.classList.contains('liked') ? 'Liked' : 'Unliked');
@@ -232,11 +230,9 @@ function extractDominantColor() {
   });
 }
 
-// Apply dominant color to background
 function applyDominantColor(img) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
   
@@ -244,7 +240,6 @@ function applyDominantColor(img) {
     ctx.drawImage(img, 0, 0);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
-    
     let r = 0, g = 0, b = 0;
     const pixelCount = pixels.length / 4;
     
@@ -260,10 +255,7 @@ function applyDominantColor(img) {
     
     const dominantColor = `rgb(${r}, ${g}, ${b})`;
     const background = img.parentElement.querySelector('.story-media-background');
-    
-    if (background) {
-      background.style.backgroundColor = dominantColor;
-    }
+    if (background) background.style.backgroundColor = dominantColor;
   } catch (e) {
     console.error('Could not extract color due to CORS:', e);
   }
@@ -273,50 +265,39 @@ function applyDominantColor(img) {
 function createStoryContent(story, internalStory) {
   const displayName = story.isYourStory ? "My Story" : story.username;
   const timestamp = story.isYourStory ? "3 minutes ago" : "15m";
-  
-  // Determine media content based on mediaType
   let mediaContent = '';
-  
+
   if (internalStory.mediaType === 'image' && internalStory.mediaUrl) {
-    // Image with blur background or color fill
-    const fillStrategy = internalStory.fillStrategy || 'blur'; // blur, color, dominant
-    
+    const fillStrategy = internalStory.fillStrategy || 'blur';
     if (fillStrategy === 'blur') {
       mediaContent = `
         <div class="story-media-container">
           <div class="story-media-background" style="background-image: url('${internalStory.mediaUrl}');"></div>
           <img src="${internalStory.mediaUrl}" alt="Story" class="story-media-image" />
-        </div>
-      `;
+        </div>`;
     } else if (fillStrategy === 'color') {
       const fillColor = internalStory.fillColor || '#000000';
       mediaContent = `
         <div class="story-media-container">
           <div class="story-media-background" style="background-color: ${fillColor};"></div>
           <img src="${internalStory.mediaUrl}" alt="Story" class="story-media-image" />
-        </div>
-      `;
+        </div>`;
     } else if (fillStrategy === 'dominant') {
-      // Will be calculated dynamically
       const fillColor = internalStory.dominantColor || '#000000';
       mediaContent = `
         <div class="story-media-container">
           <div class="story-media-background" style="background-color: ${fillColor};"></div>
           <img src="${internalStory.mediaUrl}" alt="Story" class="story-media-image" data-extract-color="true" />
-        </div>
-      `;
+        </div>`;
     }
   } else if (internalStory.mediaType === 'video' && internalStory.mediaUrl) {
-    // Video with color fill
     const fillColor = internalStory.fillColor || '#000000';
     mediaContent = `
       <div class="story-media-container">
         <div class="story-media-background" style="background-color: ${fillColor};"></div>
         <video src="${internalStory.mediaUrl}" class="story-media-video" playsinline autoplay muted loop></video>
-      </div>
-    `;
+      </div>`;
   } else {
-    // Color/gradient only (no media)
     const backgroundClass = internalStory.background === "black" ? "story-background-black" : "story-background";
     mediaContent = `<div class="${backgroundClass}"></div>`;
   }
@@ -341,9 +322,7 @@ function createStoryContent(story, internalStory) {
               ${createProgressBars(story.internalStories, internalStory.id)}
             </div>
             <div class="story-user-info">
-              <img src="${story.avatar}" 
-                   alt="${displayName}" 
-                   class="story-user-avatar">
+              <img src="${story.avatar}" alt="${displayName}" class="story-user-avatar">
               <div class="story-user-details">
                 <span class="story-user-name">${displayName}</span>
                 <span class="story-user-time">${timestamp}</span>
@@ -356,20 +335,16 @@ function createStoryContent(story, internalStory) {
       <div class="story-bottom-area">
         ${bottomContent}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// Create progress bars for internal stories
 function createProgressBars(internalStories, currentInternalStoryId) {
   return internalStories.map((story, index) => `
     <div class="story-progress-bar ${story.id === currentInternalStoryId ? 'active' : ''}" data-story-id="${story.id}">
       <div class="story-progress-fill"></div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// Update progress bar fill animation
 function updateProgressBars() {
   const currentStory = stories[currentUserIndex];
   const currentInternalStoryId = currentStory.internalStories[currentInternalStoryIndex].id;
@@ -378,88 +353,56 @@ function updateProgressBars() {
   progressBars.forEach((bar, index) => {
     const fill = bar.querySelector('.story-progress-fill');
     if (bar.dataset.storyId === currentInternalStoryId) {
-      // Reset to 0 before animating
       fill.style.transition = 'none';
       fill.style.width = '0';
       bar.classList.add('active');
-      // Force reflow to ensure reset applies
       void fill.offsetWidth;
-      // Use requestAnimationFrame to ensure animation triggers
       requestAnimationFrame(() => {
         fill.style.transition = `width ${STORY_DURATION}ms linear`;
         fill.style.width = '100%';
       });
     } else if (index < currentInternalStoryIndex) {
-      bar.classList.remove('active');
-      fill.style.transition = 'none';
       fill.style.width = '100%';
     } else {
-      bar.classList.remove('active');
-      fill.style.transition = 'none';
       fill.style.width = '0';
     }
   });
 }
 
-// Start progress timer for auto-filling
 function startProgressTimer() {
-  stopProgressTimer(); // Clear any existing timer
-  
+  stopProgressTimer();
   progressTimer = setTimeout(() => {
     const currentStory = stories[currentUserIndex];
     const nextInternalIndex = currentInternalStoryIndex + 1;
-    
     if (nextInternalIndex < currentStory.internalStories.length) {
-      // Move to next internal story
       currentInternalStoryIndex = nextInternalIndex;
       renderInternalStory();
       startProgressTimer();
     } else if (currentUserIndex < stories.length - 1) {
-      // Move to next user
       navigateUser(1);
       startProgressTimer();
     } else {
-      // Last story of last user, close popup
       closeStoryPopup();
     }
   }, STORY_DURATION);
 }
 
-// Stop progress timer
 function stopProgressTimer() {
   if (progressTimer) {
     clearTimeout(progressTimer);
     progressTimer = null;
   }
-  // Reset all progress bars to prevent stale animations
-  const progressBars = document.querySelectorAll('.story-progress-bar');
-  progressBars.forEach(bar => {
-    const fill = bar.querySelector('.story-progress-fill');
-    fill.style.transition = 'none';
-    fill.style.width = '0';
-    bar.classList.remove('active');
-  });
 }
 
-// Apply rotation to cube
 function applyCubeRotation(rotation, animate = true) {
   if (!cube) return;
-  
-  if (animate) {
-    cube.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-  } else {
-    cube.style.transition = 'none';
-  }
-  
+  cube.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
   cube.style.transform = `rotateY(${rotation}deg)`;
 }
 
-// Navigate to previous/next user
 function navigateUser(direction) {
   const newIndex = currentUserIndex + direction;
-  
   if (newIndex < 0 || newIndex >= stories.length) return;
-  
   currentUserIndex = newIndex;
   currentInternalStoryIndex = 0;
   currentRotation = currentUserIndex * -90;
@@ -468,173 +411,85 @@ function navigateUser(direction) {
   startProgressTimer();
 }
 
-// Navigate to previous/next internal story
 function navigateInternalStory(direction) {
   const currentStory = stories[currentUserIndex];
   const newIndex = currentInternalStoryIndex + direction;
-  
   if (newIndex < 0 || newIndex >= currentStory.internalStories.length) {
     navigateUser(direction);
     return;
   }
-  
   currentInternalStoryIndex = newIndex;
   renderInternalStory();
   startProgressTimer();
 }
 
-/* ----- pointer handlers (Final Fix) ----- */
-
-// Function to check if the pointer is over an interactive element
-function isPointerOverInteractive(e) {
-  return e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
-}
-
+/* ----- pointer handlers ----- */
 function onPointerDown(e) {
-  if (!popupEl || !popupEl.classList.contains("active")) {
-    return;
-  }
-  if (e.pointerType === "mouse" && e.button !== 0) {
-    return;
-  }
+  if (!popupEl || !popupEl.classList.contains("active")) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
   
-  if (isPointerOverInteractive(e)) {
-    console.log('PointerDown on interactive element: Allowing default action.');
-    // Do not set capture. Let the browser handle the click/focus.
+  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
+  if (isInteractiveElement) {
+    interactivePointerTarget = isInteractiveElement; // ✅ remember start
+    e.stopImmediatePropagation();
+    e.preventDefault();
     return;
   }
 
-  // If we are here, it is a drag/tap for story navigation/closing
-  console.log('PointerDown on navigation area: Setting capture and pausing timer.');
   activePointerId = e.pointerId;
-  try {
-    popupEl.setPointerCapture(activePointerId);
-  } catch (err) {
-    console.error('Pointer capture failed:', err);
-  }
-  
-  // *** CRITICAL ADDITION ***
-  // Prevent browser default touch/pointer behavior (like scrolling/zooming) 
-  // on the story navigation area itself, which helps ensure our custom logic takes over.
-  e.preventDefault(); 
-
+  try { popupEl.setPointerCapture(activePointerId); } catch {}
   startX = e.clientX;
   startY = e.clientY;
   lastX = startX;
   lastY = startY;
   isDragging = true;
-  stopProgressTimer(); // Pause timer on interaction
+  stopProgressTimer();
 }
 
 function onPointerMove(e) {
-  if (!isDragging || e.pointerId !== activePointerId) {
-    return;
-  }
-
+  if (!isDragging || e.pointerId !== activePointerId) return;
+  if (interactivePointerTarget) return; // ✅ skip if in input/heart
+  
   lastX = e.clientX;
   lastY = e.clientY;
 
   const deltaX = lastX - startX;
-  const deltaY = lastY - startY;
-
-  // Only allow cube drag if horizontal movement is dominant
-  if (Math.abs(deltaX) > Math.abs(deltaY) && cube) {
+  if (Math.abs(deltaX) > Math.abs(lastY - startY) && cube) {
     const dragRotation = (deltaX / window.innerWidth) * 45;
-    const previewRotation = currentRotation + dragRotation;
-    
     cube.style.transition = 'none';
-    cube.style.transform = `rotateY(${previewRotation}deg)`;
+    cube.style.transform = `rotateY(${currentRotation + dragRotation}deg)`;
   }
 }
 
 function onPointerUp(e) {
-  if (!isDragging || e.pointerId !== activePointerId) {
-    try {
-      popupEl.releasePointerCapture(e.pointerId);
-    } catch {}
+  if (interactivePointerTarget) {
+    interactivePointerTarget = null; // ✅ reset after release
     return;
   }
-  
-  // *** CRITICAL CHECK ***
-  // If pointerup occurs over an interactive element, stop the navigation logic immediately.
-  if (isPointerOverInteractive(e)) {
-    console.log('PointerUp released on interactive element: navigation prevented.');
-    isDragging = false;
-    try {
-      popupEl.releasePointerCapture(activePointerId);
-    } catch {}
-    startProgressTimer(); // Resume timer
-    return; 
-  }
+  if (!isDragging || e.pointerId !== activePointerId) return;
 
-  console.log('PointerUp on navigation area:', e.target);
   isDragging = false;
-  
-  try {
-    popupEl.releasePointerCapture(activePointerId);
-  } catch {}
-
+  try { popupEl.releasePointerCapture(activePointerId); } catch {}
   const deltaX = lastX - startX;
   const deltaY = lastY - startY;
-  const absDeltaX = Math.abs(deltaX);
-  const absDeltaY = Math.abs(deltaY);
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
 
-  // 1. Check if it was a tap
-  if (absDeltaX < TAP_THRESHOLD && absDeltaY < TAP_THRESHOLD) {
-    // 2. Check if the tap happened within the story viewer container
-    const storyViewerContainer = e.target.closest('.story-viewer-container');
-    if (storyViewerContainer) {
-      const viewerRect = storyViewerContainer.getBoundingClientRect();
-      const tapXRelativeToViewer = startX - viewerRect.left;
-      const viewerWidth = viewerRect.width;
-      
-      if (tapXRelativeToViewer > viewerWidth / 2) {
-        // Tap on the right half of the story viewer
-        navigateInternalStory(1);
-        console.log('Tap navigation: Next internal story (inside viewer)');
-      } else {
-        // Tap on the left half of the story viewer
-        navigateInternalStory(-1);
-        console.log('Tap navigation: Previous internal story (inside viewer)');
-      }
-    } else {
-      // Tap outside the story viewer 
-      console.log('Tap ignored: Outside story viewer area');
-      startProgressTimer(); // Resume timer
-    }
+  if (absX < TAP_THRESHOLD && absY < TAP_THRESHOLD) {
+    if (startX > window.innerWidth / 2) navigateInternalStory(1);
+    else navigateInternalStory(-1);
     return;
   }
-  
-  // 3. Handle Swipes (if not a tap)
-  if (absDeltaX > absDeltaY) {
-    // Horizontal swipe (User navigation)
-    if (absDeltaX > SWIPE_THRESHOLD) {
-      if (deltaX > 0 && currentUserIndex > 0) {
-        navigateUser(-1);
-        console.log('Swipe navigation: Previous user');
-      } else if (deltaX < 0 && currentUserIndex < stories.length - 1) {
-        navigateUser(1);
-        console.log('Swipe navigation: Next user');
-      } else {
-        applyCubeRotation(currentRotation, true);
-        startProgressTimer();
-        console.log('Swipe ignored: Out of bounds');
-      }
-    } else {
-      applyCubeRotation(currentRotation, true);
-      startProgressTimer();
-      console.log('Swipe ignored: Below threshold');
-    }
+
+  if (absX > absY) {
+    if (absX > SWIPE_THRESHOLD) {
+      if (deltaX > 0 && currentUserIndex > 0) navigateUser(-1);
+      else if (deltaX < 0 && currentUserIndex < stories.length - 1) navigateUser(1);
+      else applyCubeRotation(currentRotation, true);
+    } else applyCubeRotation(currentRotation, true);
   } else {
-    // Vertical swipe (Close popup)
     applyCubeRotation(currentRotation, true);
-    if (deltaY > CLOSE_THRESHOLD) {
-      closeStoryPopup();
-      console.log('Swipe down: Close popup');
-    } else {
-      startProgressTimer();
-      console.log('Swipe ignored: Below close threshold');
-    }
+    if (deltaY > CLOSE_THRESHOLD) closeStoryPopup();
+    else startProgressTimer();
   }
 }
-
