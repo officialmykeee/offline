@@ -86,7 +86,7 @@ let startY = 0;
 let lastX = 0;
 let lastY = 0;
 let isDragging = false;
-let interactivePointerTarget = null; // ✅ added variable to track interactive touches
+let interactivePointerTarget = null;
 let currentUserIndex = 0;
 let currentInternalStoryIndex = 0;
 let currentRotation = 0;
@@ -122,7 +122,7 @@ export function createStoryPopup() {
   popupEl.addEventListener(
     "touchmove",
     (e) => {
-      if (isDragging) e.preventDefault();
+      if (isDragging && !interactivePointerTarget) e.preventDefault();
     },
     { passive: false }
   );
@@ -197,6 +197,7 @@ function renderInternalStory() {
     updateProgressBars();
     extractDominantColor();
     attachHeartClickHandler();
+    attachReplyInputHandler();
   }
 }
 
@@ -215,6 +216,21 @@ function heartClickHandler(e) {
   const heart = e.currentTarget;
   heart.classList.toggle('liked');
   console.log('Heart clicked:', heart.classList.contains('liked') ? 'Liked' : 'Unliked');
+}
+
+// Attach reply input click handler
+function attachReplyInputHandler() {
+  const replyInputs = document.querySelectorAll('.story-reply-input');
+  replyInputs.forEach(input => {
+    input.removeEventListener('click', replyInputClickHandler);
+    input.addEventListener('click', replyInputClickHandler);
+  });
+}
+
+function replyInputClickHandler(e) {
+  e.stopImmediatePropagation();
+  e.preventDefault();
+  console.log('Reply input clicked for story:', e.currentTarget.dataset.storyId);
 }
 
 // Extract dominant color from image if needed
@@ -428,11 +444,9 @@ function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
   
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
+  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-heart-icon *, .story-reply-input, .story-reply-placeholder');
   if (isInteractiveElement) {
-    interactivePointerTarget = isInteractiveElement; // ✅ remember start
-    e.stopImmediatePropagation();
-    e.preventDefault();
+    interactivePointerTarget = isInteractiveElement;
     return;
   }
 
@@ -447,8 +461,7 @@ function onPointerDown(e) {
 }
 
 function onPointerMove(e) {
-  if (!isDragging || e.pointerId !== activePointerId) return;
-  if (interactivePointerTarget) return; // ✅ skip if in input/heart
+  if (!isDragging || e.pointerId !== activePointerId || interactivePointerTarget) return;
   
   lastX = e.clientX;
   lastY = e.clientY;
@@ -463,7 +476,7 @@ function onPointerMove(e) {
 
 function onPointerUp(e) {
   if (interactivePointerTarget) {
-    interactivePointerTarget = null; // ✅ reset after release
+    interactivePointerTarget = null;
     return;
   }
   if (!isDragging || e.pointerId !== activePointerId) return;
@@ -476,8 +489,16 @@ function onPointerUp(e) {
   const absY = Math.abs(deltaY);
 
   if (absX < TAP_THRESHOLD && absY < TAP_THRESHOLD) {
-    if (startX > window.innerWidth / 2) navigateInternalStory(1);
-    else navigateInternalStory(-1);
+    const screenWidth = window.innerWidth;
+    const leftZone = screenWidth * 0.3; // Left 30% of screen
+    const rightZone = screenWidth * 0.7; // Right 30% of screen
+    if (startX < leftZone) {
+      navigateInternalStory(-1); // Previous internal story
+    } else if (startX > rightZone) {
+      navigateInternalStory(1); // Next internal story
+    } else {
+      startProgressTimer(); // Resume progress if tap is in center
+    }
     return;
   }
 
