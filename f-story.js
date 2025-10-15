@@ -529,6 +529,12 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
+  // Check if tap started on heart or reply input - if so, ignore navigation
+  const target = document.elementFromPoint(startX, startY);
+  if (target && (target.closest('.story-heart-icon') || target.closest('.story-reply-input') || target.closest('.story-reply-container'))) {
+    return;
+  }
+
   if (absDeltaX < TAP_THRESHOLD && absDeltaY < TAP_THRESHOLD) {
     const screenWidth = window.innerWidth;
     const leftZone = screenWidth * 0.25;
