@@ -196,6 +196,30 @@ function renderInternalStory() {
     updateProgressBars();
     extractDominantColor();
     attachHeartClickHandler();
+    attachBottomAreaHandlers();
+  }
+}
+
+// Attach bottom area handlers to prevent propagation
+function attachBottomAreaHandlers() {
+  const bottomArea = document.querySelector('.story-bottom-area');
+  if (bottomArea) {
+    // Stop all pointer events from bubbling up
+    bottomArea.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+    }, true);
+    
+    bottomArea.addEventListener('pointerup', (e) => {
+      e.stopPropagation();
+    }, true);
+    
+    bottomArea.addEventListener('pointermove', (e) => {
+      e.stopPropagation();
+    }, true);
+    
+    bottomArea.addEventListener('click', (e) => {
+      e.stopPropagation();
+    }, true);
   }
 }
 
