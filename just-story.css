@@ -253,21 +253,16 @@ html.opera-mini .story-reply-input {
   padding: 14px 0;
 }
 
-/* Reply Input Container - for other stories */
+/* Reply Container */
 .story-reply-container {
   width: 100%;
   display: flex;
-  display: -webkit-flex;
   align-items: center;
-  -webkit-align-items: center;
-  justify-content: center;
-  -webkit-justify-content: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .story-reply-input {
-  flex: 1;
-  max-width: 420px;
+  width: 80%; /* Reduced width to make space for heart icon */
   background-color: #2a2a2a;
   border-radius: 24px;
   -webkit-border-radius: 24px;
@@ -294,42 +289,28 @@ html.opera-mini .story-reply-input {
   user-select: none;
 }
 
-/* Like Button */
-.story-like-btn {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+/* Heart Icon */
+.story-heart-container {
+  width: 36px;
+  height: 36px;
   display: flex;
-  display: -webkit-flex;
   align-items: center;
-  -webkit-align-items: center;
   justify-content: center;
-  -webkit-justify-content: center;
-  transition: transform 0.2s;
-  -webkit-transition: -webkit-transform 0.2s;
-  -o-transition: -o-transform 0.2s;
+  cursor: pointer;
 }
 
-.story-like-btn svg {
-  width: 28px;
-  height: 28px;
-  color: white;
-  transition: color 0.2s, fill 0.2s;
-  -webkit-transition: color 0.2s, fill 0.2s;
-  -o-transition: color 0.2s, fill 0.2s;
+.story-heart-container svg {
+  width: 24px;
+  height: 24px;
 }
 
-.story-like-btn:active {
-  transform: scale(0.9);
-  -webkit-transform: scale(0.9);
-  -o-transform: scale(0.9);
+.story-heart-container svg path {
+  stroke: #000000;
+  fill: none;
+  transition: fill 0.2s ease;
 }
 
-.story-like-btn.liked svg {
-  color: #ff69b4;
-  fill: #ff69b4;
+.story-heart-container.active svg path {
+  fill: #ff69b4; /* Pink when active */
+  stroke: #ff69b4;
 }
