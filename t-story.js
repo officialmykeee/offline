@@ -483,6 +483,12 @@ function navigateInternalStory(direction) {
 }
 
 /* ----- pointer handlers ----- */
+
+// Function to check if the pointer is over an interactive element
+function isPointerOverInteractive(e) {
+  return e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
+}
+
 function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) {
     console.log('PointerDown ignored: Popup not active');
@@ -493,12 +499,10 @@ function onPointerDown(e) {
     return;
   }
   
-  // Check for interactive elements first
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
-  if (isInteractiveElement) {
+  if (isPointerOverInteractive(e)) {
     console.log('PointerDown on interactive element:', e.target);
-    e.stopImmediatePropagation();
-    e.preventDefault();
+    // Do not capture pointer if starting on an interactive element, 
+    // allow default click/form behavior.
     return;
   }
 
@@ -524,12 +528,8 @@ function onPointerMove(e) {
     return;
   }
   
-  // Double-check for interactive elements
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
-  if (isInteractiveElement) {
-    console.log('PointerMove on interactive element:', e.target);
-    return;
-  }
+  // Note: We don't check for interactive elements here, as we only care where the drag started (onPointerDown)
+  // and where it ended (onPointerUp/Cancel).
 
   lastX = e.clientX;
   lastY = e.clientY;
@@ -537,6 +537,7 @@ function onPointerMove(e) {
   const deltaX = lastX - startX;
   const deltaY = lastY - startY;
 
+  // Only allow cube drag if horizontal movement is dominant
   if (Math.abs(deltaX) > Math.abs(deltaY) && cube) {
     const dragRotation = (deltaX / window.innerWidth) * 45;
     const previewRotation = currentRotation + dragRotation;
@@ -548,20 +549,25 @@ function onPointerMove(e) {
 
 function onPointerUp(e) {
   if (!isDragging || e.pointerId !== activePointerId) {
-    console.log('PointerUp ignored: Not dragging or wrong pointer ID');
+    // If the drag didn't start on an area we care about, we just release capture if it was set.
+    // This handles cases where pointerdown was ignored for an interactive element.
+    try {
+      popupEl.releasePointerCapture(e.pointerId);
+    } catch {}
+    console.log('PointerUp ignored: Not dragging or wrong pointer ID (or started on interactive element)');
     return;
   }
   
-  // Check for interactive elements
-  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input, .story-reply-placeholder, .story-heart-icon *');
-  if (isInteractiveElement) {
-    console.log('PointerUp on interactive element:', e.target);
-    e.stopImmediatePropagation();
-    e.preventDefault();
+  // *** CRITICAL FIX: CHECK IF THE POINTER RELEASED OVER AN INTERACTIVE ELEMENT ***
+  // If the pointer down was on a non-interactive area but dragged/tapped onto an interactive element,
+  // we must prevent navigation and immediately release the capture to re-enable default click/form behaviour.
+  if (isPointerOverInteractive(e)) {
+    console.log('PointerUp on interactive element: navigation prevented.');
     isDragging = false;
     try {
       popupEl.releasePointerCapture(activePointerId);
     } catch {}
+    startProgressTimer(); // Resume timer if we prevented a potential tap/drag navigation
     return;
   }
 
@@ -577,19 +583,35 @@ function onPointerUp(e) {
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
+  // 1. Check if it was a tap
   if (absDeltaX < TAP_THRESHOLD && absDeltaY < TAP_THRESHOLD) {
-    const halfWidth = window.innerWidth / 2;
-    if (startX > halfWidth) {
-      navigateInternalStory(1);
-      console.log('Tap navigation: Next internal story');
+    // 2. Check if the tap happened within the story viewer container
+    const storyViewerContainer = e.target.closest('.story-viewer-container');
+    if (storyViewerContainer) {
+      const viewerRect = storyViewerContainer.getBoundingClientRect();
+      const tapXRelativeToViewer = startX - viewerRect.left;
+      const viewerWidth = viewerRect.width;
+      
+      if (tapXRelativeToViewer > viewerWidth / 2) {
+        // Tap on the right half of the story viewer
+        navigateInternalStory(1);
+        console.log('Tap navigation: Next internal story (inside viewer)');
+      } else {
+        // Tap on the left half of the story viewer
+        navigateInternalStory(-1);
+        console.log('Tap navigation: Previous internal story (inside viewer)');
+      }
     } else {
-      navigateInternalStory(-1);
-      console.log('Tap navigation: Previous internal story');
+      // Tap outside the story viewer (e.g., on the top or bottom black background)
+      console.log('Tap ignored: Outside story viewer area');
+      startProgressTimer(); // Resume timer if it was a minor movement/tap outside the viewer
     }
     return;
   }
-
+  
+  // 3. Handle Swipes (if not a tap)
   if (absDeltaX > absDeltaY) {
+    // Horizontal swipe (User navigation)
     if (absDeltaX > SWIPE_THRESHOLD) {
       if (deltaX > 0 && currentUserIndex > 0) {
         navigateUser(-1);
@@ -608,6 +630,7 @@ function onPointerUp(e) {
       console.log('Swipe ignored: Below threshold');
     }
   } else {
+    // Vertical swipe (Close popup)
     applyCubeRotation(currentRotation, true);
     if (deltaY > CLOSE_THRESHOLD) {
       closeStoryPopup();
@@ -618,3 +641,4 @@ function onPointerUp(e) {
     }
   }
 }
+
