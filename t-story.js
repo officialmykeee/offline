@@ -480,10 +480,10 @@ function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
   
-  // Ignore if clicking on heart icon, reply input, or bottom area
-  if (e.target.closest('.story-heart-icon') || 
-      e.target.closest('.story-reply-input') ||
-      e.target.closest('.story-bottom-area')) {
+  // Explicitly ignore clicks on heart icon or reply input
+  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input');
+  if (isInteractiveElement) {
+    e.stopPropagation(); // Prevent event from bubbling to navigation handlers
     return;
   }
 
@@ -520,6 +520,18 @@ function onPointerMove(e) {
 
 function onPointerUp(e) {
   if (!isDragging || e.pointerId !== activePointerId) return;
+  
+  // Ignore if the event originated from heart or reply input
+  const isInteractiveElement = e.target.closest('.story-heart-icon, .story-reply-input');
+  if (isInteractiveElement) {
+    e.stopPropagation(); // Prevent bubbling
+    isDragging = false;
+    try {
+      popupEl.releasePointerCapture(activePointerId);
+    } catch {}
+    return;
+  }
+
   isDragging = false;
   
   try {
@@ -557,7 +569,6 @@ function onPointerUp(e) {
     }
   } else {
     applyCubeRotation(currentRotation, true);
-    // Only check for down swipe close if not interacting with bottom area
     if (deltaY > CLOSE_THRESHOLD) {
       closeStoryPopup();
     } else {
