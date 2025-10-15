@@ -89,8 +89,8 @@ html.opera-mini .story-bottom-area {
 }
 
 html.opera-mini .story-reply-input {
-    top: -5px !important;
-    position: relative !important;
+  top: -5px !important;
+  position: relative !important;
 }
 
 /* Cube Faces */
@@ -363,6 +363,11 @@ html.opera-mini .story-reply-input {
   transition: background-color 0.2s;
   -webkit-transition: background-color 0.2s;
   -o-transition: background-color 0.2s;
+  pointer-events: auto; /* Ensure it receives clicks */
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .story-reply-input:hover {
@@ -403,9 +408,14 @@ html.opera-mini .story-reply-input {
 
 .story-heart-icon.liked {
   color: #ff3b8e;
-}
-
-.story-heart-icon.liked path {
   fill: #ff3b8e;
   stroke: #ff3b8e;
+  transform: scale(1.2); /* Slightly larger when liked */
+  animation: heartPulse 0.3s ease-in-out; /* Pulse animation */
+}
+
+@keyframes heartPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1.2); }
 }
