@@ -282,3 +282,39 @@ body {
   color: black;
   font-weight: 500;
 }
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background-color: #749cbf;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(116, 156, 191, 0.4);
+  transition: all 0.2s ease;
+  z-index: 30;
+}
+
+.fab:hover {
+  background-color: #648aad;
+  box-shadow: 0 6px 16px rgba(116, 156, 191, 0.5);
+  transform: scale(1.05);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+.fab-icon {
+  color: white;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+}
