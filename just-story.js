@@ -85,6 +85,7 @@ export function createStoryPopup() {
   popupEl.appendChild(scene);
   document.body.appendChild(popupEl);
 
+  // Core Pointer Handlers for drag/swipe/navigation
   popupEl.addEventListener("pointerdown", onPointerDown);
   popupEl.addEventListener("pointermove", onPointerMove);
   popupEl.addEventListener("pointerup", onPointerUp);
@@ -104,22 +105,28 @@ export function createStoryPopup() {
     }
   });
 
-  // Event delegation for like button - using mousedown/touchstart for better responsiveness
-  popupEl.addEventListener("click", handleLikeClick, true);
-  popupEl.addEventListener("touchend", handleLikeClick, true);
+  // NEW: Event delegation for like button using pointerdown to prevent swipe interference
+  popupEl.addEventListener("pointerdown", handleLikeInteraction, true);
 }
 
-// Separate handler for like button clicks
-function handleLikeClick(e) {
+// NEW: Separate handler for like button pointerdown, replacing old click/touchend handlers
+function handleLikeInteraction(e) {
   const likeBtn = e.target.closest(".story-like-btn");
   if (likeBtn) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
+    // 1. Prevent the general onPointerDown/drag logic from starting
+    e.stopPropagation(); 
+    
+    // 2. Perform the like/unlike action immediately
     likeBtn.classList.toggle("liked");
     console.log('Like button clicked:', likeBtn.classList.contains('liked'));
+    
+    // 3. Prevent any default browser behavior (like generating a click)
+    e.preventDefault(); 
+    e.stopImmediatePropagation();
   }
 }
+
+// REMOVED: The old 'handleLikeClick' function is no longer needed
 
 // Open story at specific index
 export function openStoryPopup(story) {
@@ -240,7 +247,9 @@ function onPointerDown(e) {
   if (!popupEl || !popupEl.classList.contains("active")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
   
-  // Don't start dragging if clicking on interactive elements
+  // NOTE: The check below is now less critical for the like button 
+  // because handleLikeInteraction() handles it on pointerdown, 
+  // but it's kept to prevent dragging if the reply input is tapped.
   if (e.target.closest(".story-like-btn") || e.target.closest(".story-reply-input")) {
     return;
   }
@@ -313,3 +322,4 @@ function onPointerUp(e) {
     }
   }
 }
+
